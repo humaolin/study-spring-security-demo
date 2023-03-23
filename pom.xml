@@ -13,6 +13,7 @@
     <artifactId>study-spring-security-demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>study-spring-security-demo</name>
+    <packaging>pom</packaging>
 
     <description>study-spring-security-demo</description>
 

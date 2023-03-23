@@ -1,2 +1,14 @@
 server:
   port: 10001
+spring:
+  security:
+    user:
+      name: test
+      password: 123456
+# DataSource Config
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/study?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true
+    username: root
+    password: 123456
