@@ -42,7 +42,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException(StrUtil.format("Username {} not found", username));
         } else {
             // 2. 设置权限集合，后续需要数据库查询（授权篇讲解）
-            List<GrantedAuthority> authorityList = AuthorityUtils.commaSeparatedStringToAuthorityList("role");
+            List<GrantedAuthority> authorityList = AuthorityUtils.commaSeparatedStringToAuthorityList("admin");
             // 3. 返回UserDetails类型用户
             return new PearlUserDetails(username, user.getPassword(), user.getPhone(), authorityList,
                     true, true, true, true); // 账号状态这里都直接设置为启用，实际业务可以存在数据库中
