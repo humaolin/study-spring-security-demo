@@ -1,12 +1,14 @@
 package com.pearl.security.auth.controller;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -25,10 +27,11 @@ public class TestController {
 
     @GetMapping("/user-info")
     public Object userinfo() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        Authentication authentication = context.getAuthentication();
-        String username = authentication.getName();
-        Object principal = authentication.getPrincipal();
+        SecurityContext context = SecurityContextHolder.getContext();// 获取 SecurityContext
+        Authentication authentication = context.getAuthentication();// 获取认证信息
+        String username = authentication.getName(); // 用户名
+        Object principal = authentication.getPrincipal(); // 凭据
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();// 权限
         return authentication;
     }
 
