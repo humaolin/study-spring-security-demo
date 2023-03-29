@@ -30,7 +30,7 @@ public class TestController {
         SecurityContext context = SecurityContextHolder.getContext();// 获取 SecurityContext
         Authentication authentication = context.getAuthentication();// 获取认证信息
         String username = authentication.getName(); // 用户名
-        Object principal = authentication.getPrincipal(); // 凭据
+        Object principal = authentication.getPrincipal(); // 用户信息
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();// 权限
         return authentication;
     }
