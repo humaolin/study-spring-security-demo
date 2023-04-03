@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootTest
 class StudySpringSecurityAuthDemoApplicationTests {
@@ -25,8 +27,10 @@ class StudySpringSecurityAuthDemoApplicationTests {
     @DisplayName("插入一条用户数据")
     void insertUserTest() {
         User user = new User();
-        user.setUserName("admin");
-        user.setPassword(new BCryptPasswordEncoder().encode("123456"));
+        user.setUserName("bcrypt");
+        PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        // 使用加密：{bcrypt} 中的算法，可以从配置文件读取
+        user.setPassword( passwordEncoder.encode("{bcrypt}123456"));
         user.setLoginName("管理员");
         user.setPhone("13688888888");
         userService.save(user);

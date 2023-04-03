@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ import java.util.Set;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService, UserDetailsPasswordService {
 
     private final IUserService userService;
 
@@ -47,5 +48,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return new PearlUserDetails(username, user.getPassword(), user.getPhone(), authorityList,
                     true, true, true, true); // 账号状态这里都直接设置为启用，实际业务可以存在数据库中
         }
+    }
+
+    /**
+     * 登录时自动修改密码
+     * @param user 用户
+     * @param newPassword 新密码
+     * @return 用户信息
+     */
+    @Override
+    public UserDetails updatePassword(UserDetails user, String newPassword) {
+        return null;
     }
 }
