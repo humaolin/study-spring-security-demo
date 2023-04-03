@@ -9,17 +9,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
 
 @Configuration
-@EnableWebSecurity(debug = false)
+@EnableWebSecurity(debug = true)
 public class PearlWebSecurityConfig {
 
     @Bean
@@ -63,11 +65,18 @@ public class PearlWebSecurityConfig {
                         new AntPathRequestMatcher("/aaa","GET"),
                         new AntPathRequestMatcher("/bbb","GET")));
                 //.logoutUrl("/custom/logout"); // 自定义注销登录请求处理路径*/
-        //
-        http
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+        // 会话创建策略
+        http.sessionManagement(session -> session
+                        .sessionFixation( // 会话固定攻击保护策略
+                                SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId
+                        )
+                        .maximumSessions(1)  // 用户最大会话数为 1，后面的登陆就会自动踢掉前面的登陆
+                        .maxSessionsPreventsLogin(true) // 当前已登录时，阻止其他登录
+                        .and()
+                        .invalidSessionUrl("/login‐view?error=INVALID_SESSION") //  失效跳转路径
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS) // 创建策略
                 );
+
         // 开启Basic认证
         http.httpBasic();
         // 关闭 CSRF
@@ -82,5 +91,10 @@ public class PearlWebSecurityConfig {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 }
