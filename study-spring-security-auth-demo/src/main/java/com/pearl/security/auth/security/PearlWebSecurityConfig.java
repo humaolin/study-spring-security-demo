@@ -16,8 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 
-@Configuration
-@EnableWebSecurity(debug = true)
+//@Configuration
+@EnableWebSecurity(debug = false)
 public class PearlWebSecurityConfig {
 
     @Bean
@@ -83,7 +83,7 @@ public class PearlWebSecurityConfig {
 
     /**
      * 密码器
-     * 在用户登录认证成功后，后续请求会判断其认证状态并直接放行，那么`Spring Security`是基于什么方式来保存用户
+     *
      */
 /*    @Bean
     PasswordEncoder passwordEncoder() {
