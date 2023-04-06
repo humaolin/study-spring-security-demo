@@ -3,6 +3,7 @@ package com.pearl.security.auth.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.pearl.security.auth.entity.User;
 import com.pearl.security.auth.security.PearlUserDetails;
 import com.pearl.security.auth.service.IUserService;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -48,4 +50,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     true, true, true, true); // 账号状态这里都直接设置为启用，实际业务可以存在数据库中
         }
     }
+
+
 }
