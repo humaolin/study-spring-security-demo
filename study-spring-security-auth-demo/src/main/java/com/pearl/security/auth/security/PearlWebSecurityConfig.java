@@ -1,17 +1,18 @@
 package com.pearl.security.auth.security;
 
 import cn.hutool.core.lang.UUID;
-import cn.hutool.json.JSONUtil;
+
+import com.pearl.security.auth.filter.CaptchaVerifyFilter;
 import com.pearl.security.auth.handler.JsonAuthenticationFailureHandler;
 import com.pearl.security.auth.handler.JsonLogoutSuccessHandler;
 import com.pearl.security.auth.handler.MyLogoutHandler;
 import com.pearl.security.auth.token.JwtTokenAuthenticationSuccessHandler;
 import com.pearl.security.auth.token.JwtTokenSecurityContextHolderFilter;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -24,13 +25,14 @@ import org.springframework.security.crypto.password.*;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
@@ -56,7 +58,7 @@ public class PearlWebSecurityConfig {
                 .requestMatchers("/login.html").permitAll()
                 .anyRequest().authenticated();
         // 开启表单登录
-        http.formLogin()
+       http.formLogin()
                 // .failureForwardUrl("/login/failure")
                 // .failureUrl("/login/failure")
                 .successHandler(new JwtTokenAuthenticationSuccessHandler())
@@ -67,10 +69,10 @@ public class PearlWebSecurityConfig {
                 .loginProcessingUrl("/custom/login") // 自定义登录处理URL
                 .usernameParameter("name") // 自定义用户名参数名称
                 .passwordParameter("pwd");   //自定义密码参数名称
-        // 开启表单登录
-        *//* http.formLogin();*//*
+
+        http.formLogin();
         // 注销登录
-*//*        http.logout()
+       http.logout()
                 .logoutSuccessHandler(new JsonLogoutSuccessHandler()) //  自定义注销成功处理器
                 //.logoutSuccessUrl("/") // 自定义注销成功跳转地址
                 .addLogoutHandler(new MyLogoutHandler()) // 自定义注销处理器
@@ -81,26 +83,42 @@ public class PearlWebSecurityConfig {
                 .logoutRequestMatcher(new OrRequestMatcher(
                         new AntPathRequestMatcher("/aaa","GET"),
                         new AntPathRequestMatcher("/bbb","GET")));
-                //.logoutUrl("/custom/logout"); // 自定义注销登录请求处理路径*//*
-        // 会话创建策略
-        http.sessionManagement(session -> session
-                        .sessionFixation( // 会话固定攻击保护策略
-                                SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId
-                        )
-                        .maximumSessions(1)  // 用户最大会话数为 1，后面的登陆就会自动踢掉前面的登陆
-                        .maxSessionsPreventsLogin(true) // 当前已登录时，阻止其他登录
-                        .and()
-                        .invalidSessionUrl("/login‐view?error=INVALID_SESSION") //  失效跳转路径
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)); // 创建策略
-        //http.passwordManagement()
+                //.logoutUrl("/custom/logout"); // 自定义注销登录请求处理路径
         // 开启Basic认证
         http.httpBasic();
-        //
-        http.addFilterAfter(new JwtTokenSecurityContextHolderFilter(), SecurityContextHolderFilter.class);
+        //http.addFilterAfter(new JwtTokenSecurityContextHolderFilter(), SecurityContextHolderFilter.class);
         // 关闭 CSRF
         http.csrf().disable();
         return http.build();
     }*/
+
+    /**
+     *  前后端分离验证码校验
+     */
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        // 配置所有的Http请求必须认证
+        http.authorizeHttpRequests()
+                .requestMatchers("/getCaptcha").permitAll()
+                .anyRequest().authenticated();
+        // 开启表单登录
+        http.formLogin()
+                .successHandler(new JwtTokenAuthenticationSuccessHandler())
+                .failureHandler(new JsonAuthenticationFailureHandler());
+        // 开启Basic认证
+        http.httpBasic();
+        http.addFilterBefore(new CaptchaVerifyFilter(new JsonAuthenticationFailureHandler(),stringRedisTemplate), UsernamePasswordAuthenticationFilter.class);
+        // 关闭 CSRF
+        http.csrf().disable();
+        return http.build();
+    }
+
+
+
 
     /**
      * 密码器
@@ -110,18 +128,20 @@ public class PearlWebSecurityConfig {
     SM4PasswordEncoder passwordEncoder() {
         return new SM4PasswordEncoder("1234567812345678");
     }*/
-    @Bean
+/*    @Bean
     public HttpSessionEventPublisher httpSessionEventPublisher() {
+        // 使用SpringSession时，不再需要
         return new HttpSessionEventPublisher();
-    }
+    }*/
 
     @Bean
     PasswordEncoder passwordEncoder() {
         // 当前需升级到哪种算法 （实际开发需要在配置文件中读取）
         String encodingId = "bcrypt";
         // 添加算法支持
-        Map<String, PasswordEncoder> encoders = new HashMap();
+        Map<String, PasswordEncoder> encoders = new HashMap<>();
         encoders.put("bcrypt", new BCryptPasswordEncoder());
+        encoders.put(encodingId, new BCryptPasswordEncoder());
         encoders.put("ldap", new LdapShaPasswordEncoder());
         encoders.put("MD4", new Md4PasswordEncoder());
         encoders.put("MD5", new MessageDigestPasswordEncoder("MD5"));
@@ -140,10 +160,12 @@ public class PearlWebSecurityConfig {
         return new DelegatingPasswordEncoder(encodingId, encoders);
     }
 
-    @Bean
+/*    @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         // 配置所有的Http请求必须认证
-        http.authorizeHttpRequests().anyRequest().authenticated();
+        http.authorizeHttpRequests()
+                .requestMatchers("/getCaptcha").permitAll()
+                .anyRequest().authenticated();
         // 开启表单登录
         http.formLogin();
         // 开启Basic认证
@@ -161,7 +183,7 @@ public class PearlWebSecurityConfig {
         //.rememberMeCookieName("my-cookie-name") // 配置自定义Cookie 名，默认 remember-me
         //.rememberMeParameter("my-param");  // 传递的参数
         // 会话创建策略
-/*        http.sessionManagement(session -> session
+*//*        http.sessionManagement(session -> session
                 .sessionFixation( // 会话固定攻击保护策略
                         SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId
                 )
@@ -178,13 +200,21 @@ public class PearlWebSecurityConfig {
                 })
                 .and()
                 .invalidSessionUrl("/login‐view?error=INVALID_SESSION") //  失效跳转路径
-                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)); // 创建策略*/
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)); // 创建策略*//*
+        // 会话创建策略
         // 会话创建策略
         http.sessionManagement(session -> session
+                .sessionFixation( // 会话固定攻击保护策略
+                        SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId
+                )
                 .maximumSessions(1)  // 用户最大会话数为 1，后面的登陆就会自动踢掉前面的登陆
-                .maxSessionsPreventsLogin(true)); // 当前已登录时，阻止其他登录
+                .maxSessionsPreventsLogin(true) // 当前已登录时，阻止其他登录
+                //.sessionRegistry(springSessionBackedSessionRegistry)  // 指定会话注册表
+                .and()
+                //.invalidSessionUrl("/login‐view?error=INVALID_SESSION") //  失效跳转路径
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
         return http.build();
-    }
+    }*/
 
     @Autowired
     DataSource dataSource;
