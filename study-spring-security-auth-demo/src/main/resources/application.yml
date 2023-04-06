@@ -12,3 +12,12 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/pearl_demo?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true
     username: root
     password: root
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: 123456
+  session:
+    redis:
+      # 指定前缀
+      namespace: spring:security
