@@ -92,18 +92,22 @@ public class PearlWebSecurityConfig {
         return http.build();
     }*/
 
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+
     /**
      *  前后端分离验证码校验
      */
 
-    @Autowired
+/*    @Autowired
     StringRedisTemplate stringRedisTemplate;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         // 配置所有的Http请求必须认证
         http.authorizeHttpRequests()
-                .requestMatchers("/getCaptcha").permitAll()
+                .requestMatchers("/generateCaptcha").permitAll()
                 .anyRequest().authenticated();
         // 开启表单登录
         http.formLogin()
@@ -115,9 +119,27 @@ public class PearlWebSecurityConfig {
         // 关闭 CSRF
         http.csrf().disable();
         return http.build();
+    }*/
+
+    /**
+     *  前后端分离短信验证码登录
+     */
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        // 配置所有的Http请求必须认证
+        http.authorizeHttpRequests()
+                .requestMatchers("/sms/send/Captcha").permitAll()
+                .anyRequest().authenticated();
+        // 开启表单登录
+        http.formLogin()
+                .successHandler(new JwtTokenAuthenticationSuccessHandler())
+                .failureHandler(new JsonAuthenticationFailureHandler());
+        // 开启Basic认证
+        http.httpBasic();
+        // 关闭 CSRF
+        http.csrf().disable();
+        return http.build();
     }
-
-
 
 
     /**

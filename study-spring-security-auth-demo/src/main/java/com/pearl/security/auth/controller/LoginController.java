@@ -33,7 +33,7 @@ public class LoginController {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
-    @GetMapping("/getCaptcha")
+    @GetMapping("/generateCaptcha")
     @ResponseBody
     public R<CaptchaVO> getCaptcha(HttpServletResponse response) {
         // 定义图形验证码的长和宽
@@ -45,13 +45,8 @@ public class LoginController {
         CaptchaVO captchaVO = new CaptchaVO();
         captchaVO.setId(UUID.randomUUID().toString());
         captchaVO.setBase64(imageBase64);
-        captchaVO.setCode(code);
         // 缓存验证码，10分钟有效
         stringRedisTemplate.opsForValue().set(captchaVO.getId(), code, 10, TimeUnit.MINUTES);
         return R.response(200, "生成验证码成功", captchaVO);
-    }
-
-    public static void main(String[] args) {
-
     }
 }
