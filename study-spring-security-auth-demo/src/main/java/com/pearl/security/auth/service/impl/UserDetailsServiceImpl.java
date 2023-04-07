@@ -51,5 +51,18 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
     }
 
-
+    public UserDetails loadUserByPhone(String phone) throws UsernameNotFoundException {
+        // 1. 数据库查询用户
+        User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
+        if (ObjectUtil.isNull(user)) {
+            log.error("Query returned no results for user '" + phone + "'");
+            throw new UsernameNotFoundException(StrUtil.format("Phone {} not found", phone));
+        } else {
+            // 2. 设置权限集合，后续需要数据库查询（授权篇讲解）
+            List<GrantedAuthority> authorityList = AuthorityUtils.commaSeparatedStringToAuthorityList("admin");
+            // 3. 返回UserDetails类型用户
+            return new PearlUserDetails(user.getUserName(), null, user.getPhone(), authorityList,
+                    true, true, true, true); // 账号状态这里都直接设置为启用，实际业务可以存在数据库中
+        }
+    }
 }
