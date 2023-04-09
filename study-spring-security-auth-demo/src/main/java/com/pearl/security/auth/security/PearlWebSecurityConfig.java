@@ -38,6 +38,8 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.pearl.security.auth.sms.SmsLoginConfigurer.smsLogin;
+
 
 @Configuration
 @EnableWebSecurity(debug = false)
@@ -128,12 +130,15 @@ public class PearlWebSecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         // 配置所有的Http请求必须认证
         http.authorizeHttpRequests()
-                .requestMatchers("/sms/send/Captcha").permitAll()
+                .requestMatchers("/sms/send/Captcha","sms/login").permitAll()
                 .anyRequest().authenticated();
         // 开启表单登录
         http.formLogin()
                 .successHandler(new JwtTokenAuthenticationSuccessHandler())
                 .failureHandler(new JsonAuthenticationFailureHandler());
+        // 开启短信验证码登录（默认关闭）
+        http.apply(smsLogin());
+        // 禁用写法：http.apply(smsLogin()).disable();
         // 开启Basic认证
         http.httpBasic();
         // 关闭 CSRF

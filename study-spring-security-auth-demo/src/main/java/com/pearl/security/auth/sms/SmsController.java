@@ -1,4 +1,4 @@
-package com.pearl.security.auth.controller;
+package com.pearl.security.auth.sms;
 
 import cn.hutool.core.util.RandomUtil;
 import com.pearl.security.auth.common.R;
@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.concurrent.TimeUnit;
@@ -25,7 +26,7 @@ public class SmsController {
      * 发送验证码接口
      */
     @GetMapping("/send/Captcha")
-    public R<SmsCaptchaVO> msmCaptcha(String phone) {
+    public R<SmsCaptchaVO> msmCaptcha(@RequestParam String phone) {
         // 1. 获取到手机号
         log.info(phone + "请求获取验证码");
         // 2. 模拟调用短信平台获取验证码，以手机号为KEY，验证码为值，存入Redis，过期时间5分钟
