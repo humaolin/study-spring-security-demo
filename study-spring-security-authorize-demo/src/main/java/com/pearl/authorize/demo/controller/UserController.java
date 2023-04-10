@@ -27,7 +27,8 @@ public class UserController {
 
     //@PreAuthorize("authentication.name ='root'")
     //@PreAuthorize("hasRole('ROLE_ADMIN') and hasRole('ROLE_USER')")
-    @PreAuthorize("authentication.name ==#name")
+    //@PreAuthorize("authentication.name ==#name")
+    @PreAuthorize("hasRole('ROLE_ADMIN') and hasRole('ROLE_USER')")
     @GetMapping("/save")
     String save(String name) {
         return "save";

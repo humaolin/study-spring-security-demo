@@ -19,7 +19,7 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 
 @Configuration
 @EnableWebSecurity(debug = true)
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true,securedEnabled = true,jsr250Enabled = true)
 public class PearlWebSecurityConfig {
 
     /**
@@ -71,6 +71,8 @@ public class PearlWebSecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         // authorizeHttpRequests：指定多个授权规则，按照顺序
         http.authorizeHttpRequests()
+                // /user/list请求，必须拥有 ADMIN角色
+                //.requestMatchers("/user/list").hasRole("ADMIN")
                 .anyRequest().authenticated();
         // 开启表单登录
         http.formLogin();
