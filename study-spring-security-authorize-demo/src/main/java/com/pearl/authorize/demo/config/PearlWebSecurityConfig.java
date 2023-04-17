@@ -11,6 +11,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
@@ -18,7 +21,7 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 
 
 @Configuration
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity(debug = false)
 @EnableMethodSecurity(prePostEnabled = true,securedEnabled = true,jsr250Enabled = true)
 public class PearlWebSecurityConfig {
 
@@ -79,7 +82,9 @@ public class PearlWebSecurityConfig {
         // 开启Basic认证
         http.httpBasic();
         // 关闭 CSRF
-        http.csrf().disable();
+        //http.csrf().disable();
+        http.csrf().ignoringRequestMatchers("/login") // 不需要进行防护的接口
+                .csrfTokenRepository(new CookieCsrfTokenRepository()); // 设置令牌的存储方式
         return http.build();
     }
 }

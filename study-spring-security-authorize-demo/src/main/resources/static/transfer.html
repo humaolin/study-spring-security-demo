@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>转账</title>
+</head>
+<body>
+<form action = "/transfer" method="post">
+    <input type="hidden" th:value="${_csrf.token}" name="_csrf" th:if="${_csrf}"/>
+    <input type="text" name="name"/><br/>
+    <input type="submit" value="转账"/>
+</form>
+</body>
+</html>

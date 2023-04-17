@@ -1,9 +1,8 @@
+
 package com.pearl.authorize.demo.controller;
 
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PostAuthorize;
+
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,11 +29,13 @@ public class UserController {
     //@PreAuthorize("authentication.name ==#name")
     @PreAuthorize("hasRole('ROLE_ADMIN') and hasRole('ROLE_USER')")
     @GetMapping("/save")
+    // Inject language or reference
     String save(String name) {
         return "save";
     }
 
     @GetMapping("/del")
+    @PreAuthorize("hasUser('sysadmin','admin')")
     String del() {
         return "del";
     }
