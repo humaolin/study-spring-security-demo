@@ -1,8 +1,11 @@
 package com.pearl.authorize.demo.config;
 
+
+import com.pearl.authorize.demo.exception.JsonAccessDeniedHandler;
+import com.pearl.authorize.demo.exception.JsonAuthenticationEntryPoint;
+import com.pearl.authorize.demo.exception.JsonAuthenticationFailureHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -10,18 +13,12 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
-
-import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 
 @Configuration
-@EnableWebSecurity(debug = false)
+@EnableWebSecurity(debug = true)
 @EnableMethodSecurity(prePostEnabled = true,securedEnabled = true,jsr250Enabled = true)
 public class PearlWebSecurityConfig {
 
@@ -78,13 +75,19 @@ public class PearlWebSecurityConfig {
                 //.requestMatchers("/user/list").hasRole("ADMIN")
                 .anyRequest().authenticated();
         // 开启表单登录
-        http.formLogin();
+        http.formLogin().failureHandler(new JsonAuthenticationFailureHandler());
         // 开启Basic认证
         http.httpBasic();
         // 关闭 CSRF
-        //http.csrf().disable();
-        http.csrf().ignoringRequestMatchers("/login") // 不需要进行防护的接口
-                .csrfTokenRepository(new CookieCsrfTokenRepository()); // 设置令牌的存储方式
+        http.csrf().disable();
+        // 异常配置
+        http.exceptionHandling()
+                .accessDeniedHandler(new JsonAccessDeniedHandler())
+                        .authenticationEntryPoint(new JsonAuthenticationEntryPoint());
+        // CSRF配置
+/*        http.csrf()//.ignoringRequestMatchers("/login") // 不需要进行防护的接口
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                .csrfTokenRepository(new CookieCsrfTokenRepository()); // 设置令牌的存储方式*/
         return http.build();
     }
 }
