@@ -1,8 +1,37 @@
 spring:
   security:
     oauth2:
+      # OAuth2 客户端配置
       client:
+        # 基础属性前缀
         registration:
+          # OAuth2服务提供商标识符（由当前项目定义）
           github:
+            # 申请的客户端ID
             client-id: 7ea9d105e824abc35372
+            # 申请的客户端密码
             client-secret: 1bd7e6bc32869da1e9696056bb505e83c6aa3b61
+          gitee:
+            # 申请的客户端ID
+            client-id: 29f5c36c2f4576478e7acd9de476357cc225e7c7683b86510d29072276efc0e2
+            # 申请的客户端密码
+            client-secret: 767bf7931269eaa9cca8a3c01fcf23b65c423d1dc99fb6db6d5c61f30a38caa2
+            # 授权模式，固定为 authorization_code，其他值可以参考AuthorizationGrantType
+            authorization-grant-type: authorization_code
+            # 回调地址，接收授权码
+            redirect-uri: http://localhost:8080/login/oauth2/code/gitee
+            # 权限范围，可配置项在码云应用信息中查看
+            scope:
+              - user_info # 个人用户信息
+              - projects # 查看、创建、更新用户的项目
+              -
+        provider:
+          gitee:
+            # 申请授权地址
+            authorization-uri: https://gitee.com/oauth/authorize
+            # 获取访问令牌地址
+            token-uri: https://gitee.com/oauth/token
+            # 查询用户信息地址
+            user-info-uri: https://gitee.com/api/v5/user
+            # 码云用户信息中的用户名字段
+            user-name-attribute: login

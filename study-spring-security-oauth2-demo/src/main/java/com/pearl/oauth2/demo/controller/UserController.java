@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     // 默认重定向URI模板是 {baseUrl}/login/oauth2/code/{registrationId}。registrationId 是 ClientRegistration 的唯一标识符。
-    // localhost:8080。
     @GetMapping("/user-info")
     @ResponseBody
     Object code() {
