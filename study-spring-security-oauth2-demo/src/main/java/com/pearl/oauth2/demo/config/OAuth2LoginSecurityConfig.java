@@ -21,23 +21,36 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity(debug = true)
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
-public class PearlWebSecurityConfig {
+public class OAuth2LoginSecurityConfig {
 
     /**
-     * 基于内存创建用户
+     * 完整配置选项
+     * https://gitee.com/profile/account_information
      */
     @Bean
-    UserDetailsService userDetailsService() {
-        InMemoryUserDetailsManager detailsManager = new InMemoryUserDetailsManager();
-        // 系统管理员
-        detailsManager.createUser(User.withUsername("sysadmin").password("{noop}123456").roles("ADMIN").authorities("save").build());
-        // 普通用户
-        detailsManager.createUser(User.withUsername("user").password("{noop}123456").roles("USER").build());
-        return detailsManager;
-    }
-
-    @Bean
-    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+/*        http.oauth2Login(oauth2 -> oauth2
+                        .clientRegistrationRepository(this.clientRegistrationRepository())
+                        .authorizedClientRepository(this.authorizedClientRepository())
+                        .authorizedClientService(this.authorizedClientService())
+                        .loginPage("/login")
+                        .authorizationEndpoint(authorization -> authorization
+                                .baseUri(this.authorizationRequestBaseUri())
+                                .authorizationRequestRepository(this.authorizationRequestRepository())
+                                .authorizationRequestResolver(this.authorizationRequestResolver())
+                        )
+                        .redirectionEndpoint(redirection -> redirection
+                                .baseUri(this.authorizationResponseBaseUri())
+                        )
+                        .tokenEndpoint(token -> token
+                                .accessTokenResponseClient(this.accessTokenResponseClient())
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userAuthoritiesMapper(this.userAuthoritiesMapper())
+                                .userService(this.oauth2UserService())
+                                .oidcUserService(this.oidcUserService())
+                        )
+                );*/
         // authorizeHttpRequests：指定多个授权规则，按照顺序
         http.authorizeHttpRequests()
                 .anyRequest().authenticated();
@@ -51,6 +64,23 @@ public class PearlWebSecurityConfig {
         http.csrf().disable();
         return http.build();
     }
+
+
+/*    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        // authorizeHttpRequests：指定多个授权规则，按照顺序
+        http.authorizeHttpRequests()
+                .anyRequest().authenticated();
+        // 开启表单登录
+        http.formLogin();
+        // 开启 OAuth2 登录
+        http.oauth2Login();
+        // 开启Basic认证
+        http.httpBasic();
+        // 关闭 CSRF
+        http.csrf().disable();
+        return http.build();
+    }*/
 
 /*	@Bean
 	public ClientRegistrationRepository clientRegistrationRepository() {
