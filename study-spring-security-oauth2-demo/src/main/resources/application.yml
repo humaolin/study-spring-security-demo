@@ -30,7 +30,6 @@ spring:
             scope:
               - user_info # 个人用户信息
               - projects # 查看、创建、更新用户的项目
-              -
         provider:
           gitee:
             # 申请授权地址

@@ -17,6 +17,8 @@ import java.util.*;
 public class PearlUserDetails implements UserDetails {
     private String password;
     private final String username;
+
+    private final Long userId;
     private final String phone; // 扩展字段，手机号放入用户信息中
     private final Set<GrantedAuthority> authorities;
     private final boolean accountNonExpired;
@@ -24,8 +26,9 @@ public class PearlUserDetails implements UserDetails {
     private final boolean credentialsNonExpired;
     private final boolean enabled;
 
-    public PearlUserDetails(String username, String password, String phone, List<GrantedAuthority> authorities, boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled) {
+    public PearlUserDetails(Long userId, String username, String password, String phone, List<GrantedAuthority> authorities, boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled) {
         this.password = password;
+        this.userId = userId;
         this.phone = phone;
         this.username = username;
         this.accountNonExpired = accountNonExpired;
@@ -47,6 +50,7 @@ public class PearlUserDetails implements UserDetails {
 
     private static class AuthorityComparator implements Comparator<GrantedAuthority>, Serializable {
         private static final long serialVersionUID = 600L;
+
         public int compare(GrantedAuthority g1, GrantedAuthority g2) {
             if (g2.getAuthority() == null) {
                 return -1;
