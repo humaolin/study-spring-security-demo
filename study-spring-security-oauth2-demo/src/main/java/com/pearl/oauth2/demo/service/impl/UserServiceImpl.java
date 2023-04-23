@@ -1,8 +1,11 @@
 package com.pearl.oauth2.demo.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pearl.oauth2.demo.entity.User;
+import com.pearl.oauth2.demo.entity.UserBindThirdLogin;
 import com.pearl.oauth2.demo.mapper.UserMapper;
 import com.pearl.oauth2.demo.service.IUserService;
 import org.springframework.stereotype.Service;
