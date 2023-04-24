@@ -1,6 +1,7 @@
 package com.pearl.oauth2.demo.oauth2;
 
 import cn.hutool.core.lang.Dict;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.pearl.oauth2.demo.entity.User;
@@ -42,6 +43,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
+ *
+ *
  * @author TangDan
  * @version 1.0
  * @since 2023/4/23
@@ -89,10 +92,11 @@ public class PearlOAuth2UserService implements OAuth2UserService<OAuth2UserReque
                 // 4. 取出对应的第三方平台用户ID
                 Assert.notNull(userAttributes, "userAttributes cannot be null");
                 String thirdUserId = (String.valueOf(userAttributes.get(userIdAttributeName)));
-                if (StrUtil.isEmpty(thirdUserId)) {
-                    // 未查询到第三方对应的用户信息，直接创建用户
-                    String registrationId = userRequest.getClientRegistration().getRegistrationId(); // 平台标识
-                    // 自动创建用户
+                // 5.查询绑定表
+                String registrationId = userRequest.getClientRegistration().getRegistrationId(); // 类型
+                UserBindThirdLogin userBindThirdLogin = bindThirdLoginService.selectOne(registrationId, thirdUserId);
+                if (ObjectUtil.isNull(userBindThirdLogin)) {
+                    // 未查询到第三方对应绑定信息，直接创建用户
                     User user = new User();
                     if ("gitee".equals(registrationId)) {
                         // 码云（和github相关字段都是一样的）
@@ -106,24 +110,21 @@ public class PearlOAuth2UserService implements OAuth2UserService<OAuth2UserReque
                     user.setPassword(new BCryptPasswordEncoder().encode("123456")); // 随机密码
                     userService.save(user);// 保存用户
                     // 新增绑定关系
-                    UserBindThirdLogin userBindThirdLogin = new UserBindThirdLogin();
+                    userBindThirdLogin = new UserBindThirdLogin();
                     userBindThirdLogin.setUserId(user.getUserId());
+                    userBindThirdLogin.setUuid(thirdUserId);
                     userBindThirdLogin.setType(registrationId);
                     userBindThirdLogin.setCreateTime(LocalDateTime.now());
                     userBindThirdLogin.setNickname(dict.getStr("name"));
                     bindThirdLoginService.save(userBindThirdLogin);
                 }
-                // 5.查询绑定表
-                String registrationId = userRequest.getClientRegistration().getRegistrationId(); // 类型
-                UserBindThirdLogin userBindThirdLogin = bindThirdLoginService.selectOne(registrationId, thirdUserId);
-                Assert.notNull(userBindThirdLogin, "userBindThirdLogin cannot be null");
                 // 6. 查询对应的当前平台用户信息
                 Long userId = userBindThirdLogin.getUserId();
                 User user = userService.getById(userId);
-                // 7. 设置权限集合，后续需要数据库查询（授权篇讲解）
+                // 7. 设置权限集合
                 List<GrantedAuthority> authorityList = AuthorityUtils.commaSeparatedStringToAuthorityList("admin");
                 // 8. 返回UserDetails类型用户
-                return new PearlUserDetails(user.getUserId(), user.getUserName(), user.getPhone(), authorityList,
+                return new PearlUserDetails(user.getUserId(), thirdUserId, null, user.getUserName(), user.getPhone(), authorityList,
                         true, true, true, true); // 账号状态这里都直接设置为启用，实际业务可以存在数据库中
             }
         }

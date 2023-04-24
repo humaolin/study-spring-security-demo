@@ -18,6 +18,7 @@ spring:
             # 申请的客户端密码
             client-secret: 1bd7e6bc32869da1e9696056bb505e83c6aa3b61
           gitee:
+            client-name: 码云登录
             # 申请的客户端ID
             client-id: 29f5c36c2f4576478e7acd9de476357cc225e7c7683b86510d29072276efc0e2
             # 申请的客户端密码
@@ -39,4 +40,37 @@ spring:
             # 查询用户信息地址
             user-info-uri: https://gitee.com/api/v5/user
             # 码云用户信息中的用户名字段
-            user-name-attribute: login
+            # user-name-attribute: login
+            # 码云用户信息中的用户ID字段
+            user-name-attribute: id
+# ums core
+ums:
+  # ================ 第三方授权登录相关配置 ================
+  oauth:
+    # 是否支持第三方授权登录功能, 默认: true
+    enabled: true
+    # 抑制反射警告, 支持 JDK11, 默认: false , 在确认 WARNING: An illegal reflective access operation has occurred 安全后, 可以打开此设置, 可以抑制反射警告.
+    suppress-reflect-warning: true
+    # 第三方服务商: providerId, 支持所有 JustAuth 支持的第三方授权登录, 目前有 32 家第三方授权登录
+    github:
+      # 根据是否有设置 clientId 来动态加载相应 JustAuth 的 AuthXxxRequest
+      client-id: 7ea9d105e824abc35372
+      client-secret: 1bd7e6bc32869da1e9696056bb505e83c6aa3b61
+    gitee:
+      client-id: 29f5c36c2f4576478e7acd9de476357cc225e7c7683b86510d29072276efc0e2
+      client-secret: 767bf7931269eaa9cca8a3c01fcf23b65c423d1dc99fb6db6d5c61f30a38caa2
+    # 第三方登录授权登录 url 前缀, 不包含 ServletContextPath，默认为 /auth2/authorization.
+    auth-login-url-prefix: /auth2/authorization
+    # 第三方登录回调处理 url 前缀 ，也就是 RedirectUrl 的前缀, 不包含 ServletContextPath，默认为 /auth2/login.
+    redirect-url-prefix: /auth2/login
+    # 第三方登录回调的域名, 例如：http://localhost:9090 默认为 "http://127.0.0.1"，
+    # redirectUrl 直接由 {domain}/{servletContextPath}/{redirectUrlPrefix}/{providerId}(ums.oauth.[qq/gitee/weibo])组成
+    domain: http://localhost:9090
+    # 第三方授权登录成功后的默认权限, 多个权限用逗号分开, 默认为: "ROLE_USER"
+    default-authorities: ROLE_USER
+    # 用于 JustAuth 的代理(HttpClient)设置
+    proxy:
+      # 用于国内代理(HttpClient)超时, 默认 PT3S
+      timeout: PT3S
+      # 用于国外网站代理(HttpClient)超时, 默认 PT15S
+      foreign-timeout: PT150S
