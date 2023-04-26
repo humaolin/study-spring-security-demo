@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
@@ -24,6 +25,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -31,6 +33,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.util.UUID;
 
 /**
@@ -51,10 +54,7 @@ public class SpringAuthServerConfig {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .oidc(Customizer.withDefaults());    // Enable OpenID Connect 1.0
-        http
-                // Redirect to the login page when not authenticated from the
-                // authorization endpoint
-                .exceptionHandling((exceptions) -> exceptions
+        http.exceptionHandling((exceptions) -> exceptions
                         .authenticationEntryPoint(
                                 new LoginUrlAuthenticationEntryPoint("/login"))
                 )
@@ -62,7 +62,6 @@ public class SpringAuthServerConfig {
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
         return http.build();
     }
-
     /**
      * 客户端配置，基于内存
      */
@@ -84,13 +83,32 @@ public class SpringAuthServerConfig {
     }*/
 
     /**
-     * 客户端配置，基于数据库
+     * 客户端配置，基于数据库存储
      */
     @Bean
     public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
-        // 初始化时可以直接保存一个客户端到数据库中
-/*        JdbcRegisteredClientRepository jdbcRegisteredClientRepository = new JdbcRegisteredClientRepository(jdbcTemplate);
-        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        JdbcRegisteredClientRepository jdbcRegisteredClientRepository = new JdbcRegisteredClientRepository(jdbcTemplate);
+        jdbcRegisteredClientRepository.save(createDefaultClient());// 初始化时可以直接保存一个客户端到数据库中
+        return jdbcRegisteredClientRepository;
+    }
+
+    private RegisteredClient createDefaultClient() {
+        // 1. 创建客户端配置
+        ClientSettings clientSettings = ClientSettings.builder()
+                .requireAuthorizationConsent(true) // 需要授权同意，false表示自动授权（静默授权）
+                .requireProofKey(false) // 是否需要需要验证密钥
+                .settings(map -> { // 添加自定义配置项
+                    map.put("user_info_url", "https://www.baidu.com/v1/user-info");
+                })
+                .build();
+        // 2. 创建令牌配置
+        TokenSettings tokenSettings = TokenSettings.builder()
+                .accessTokenTimeToLive(Duration.ofMinutes(30)) // 访问令牌有效期（默认5分钟）
+                .refreshTokenTimeToLive(Duration.ofDays(1)) // 刷新令牌有效期（默认60分钟）
+                .authorizationCodeTimeToLive(Duration.ofMinutes(10)) // 授权码有效期（默认5分钟）
+                .build();
+        // 3. 创建客户端
+        return RegisteredClient.withId("123456") // ID
                 .clientName("测试客户端")
                 .clientId("client")
                 .clientSecret("{noop}secret")
@@ -100,19 +118,11 @@ public class SpringAuthServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 .redirectUri("http://127.0.0.1:8080/callback")
                 .scope("user_info")
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+                .clientSettings(clientSettings)
+                .tokenSettings(tokenSettings)
                 .build();
-        jdbcRegisteredClientRepository.save(registeredClient);*/
-        return new JdbcRegisteredClientRepository(jdbcTemplate);
     }
 
-    /**
-     * 解码签名访问令牌
-     */
-    @Bean
-    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-    }
 
     /**
      * 配置Spring授权服务器
@@ -123,18 +133,27 @@ public class SpringAuthServerConfig {
     }
 
     /**
+     * 解码签名访问令牌
+     *
+     */
+    @Bean
+    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+    }
+
+    /**
      * 访问令牌签名
      */
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
         KeyPair keyPair = generateRsaKey();
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        RSAKey rsaKey = new RSAKey.Builder(publicKey)
+        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic(); // 公钥
+        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate(); // 私钥
+        RSAKey rsaKey = new RSAKey.Builder(publicKey) // 构建为JOSE RSA秘钥
                 .privateKey(privateKey)
                 .keyID(UUID.randomUUID().toString())
                 .build();
-        JWKSet jwkSet = new JWKSet(rsaKey);
+        JWKSet jwkSet = new JWKSet(rsaKey); // 创建JWKSet
         return new ImmutableJWKSet<>(jwkSet);
     }
 
@@ -144,6 +163,7 @@ public class SpringAuthServerConfig {
     private static KeyPair generateRsaKey() {
         KeyPair keyPair;
         try {
+            // 使用`RSA`算法生成非对称秘钥对
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);
             keyPair = keyPairGenerator.generateKeyPair();
