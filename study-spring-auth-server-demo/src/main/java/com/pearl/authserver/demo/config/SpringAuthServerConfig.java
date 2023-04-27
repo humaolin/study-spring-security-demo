@@ -17,6 +17,10 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -26,6 +30,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -62,6 +67,14 @@ public class SpringAuthServerConfig {
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
         return http.build();
     }
+
+    /**
+     * 基于数据库存授权信息
+     */
+    @Bean
+    public OAuth2AuthorizationService authorizationService(JdbcTemplate jdbcTemplate,RegisteredClientRepository clientRepository) {
+        return new JdbcOAuth2AuthorizationService(jdbcTemplate,clientRepository);
+    }
     /**
      * 客户端配置，基于内存
      */
@@ -91,6 +104,8 @@ public class SpringAuthServerConfig {
         jdbcRegisteredClientRepository.save(createDefaultClient());// 初始化时可以直接保存一个客户端到数据库中
         return jdbcRegisteredClientRepository;
     }
+
+
 
     private RegisteredClient createDefaultClient() {
         // 1. 创建客户端配置
@@ -134,7 +149,6 @@ public class SpringAuthServerConfig {
 
     /**
      * 解码签名访问令牌
-     *
      */
     @Bean
     public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
