@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static com.pearl.jwt.demo.config.JwtAuthenticationConfigurer.jwtAuth;
+
 
 @Configuration
 public class SecurityConfig {
@@ -26,10 +28,9 @@ public class SecurityConfig {
         // 开启表单登录
         http.formLogin().successHandler(new JwtTokenAuthenticationSuccessHandler());
         http.csrf().disable();
-        // 会话创建策略
-        http.sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 绝对不会创建Session，也不使用Session，每个请求都需要重新进行身份验证
-        );
+        // JWT
+        // 开启JWT（默认关闭）
+        http.apply(jwtAuth());
         return http.build();
     }
     /**

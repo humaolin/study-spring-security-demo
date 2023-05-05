@@ -1,4 +1,4 @@
-package com.pearl.jwt.demo.jwt;
+package com.pearl.jwt.demo.resolver;
 
 import jakarta.servlet.http.HttpServletRequest;
 

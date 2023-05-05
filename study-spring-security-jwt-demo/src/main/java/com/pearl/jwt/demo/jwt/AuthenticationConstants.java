@@ -7,7 +7,7 @@ package com.pearl.jwt.demo.jwt;
  */
 public class AuthenticationConstants {
 
+    // JWT 秘钥
     public static final String JWT_KEY = "key";
 
-    public static final String TOKEN_HEADER = "Authorization";
 }

@@ -1,8 +1,8 @@
-package com.pearl.jwt.demo.jwt;
+package com.pearl.jwt.demo.resolver;
 
+import com.pearl.jwt.demo.jwt.JwtAuthenticationException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 
 import java.util.regex.Matcher;
@@ -24,14 +24,6 @@ public final class DefaultBearerJwtTokenResolver implements BearerTokenResolver 
         return resolveFromAuthorizationHeader(request);
     }
 
-    /**
-     *  设置此值可配置解析承载令牌时要检查的标头。此值默认为｛@link HttpHeadersAUTHORIZATION｝。
-     *
-     * This allows other headers to be used as the Bearer Token source such as
-     * {@link HttpHeaders#PROXY_AUTHORIZATION}
-     * @param bearerTokenHeaderName the header to check when retrieving the Bearer Token.
-     * @since 5.4
-     */
     public void setBearerTokenHeaderName(String bearerTokenHeaderName) {
         this.bearerTokenHeaderName = bearerTokenHeaderName;
     }
@@ -43,7 +35,7 @@ public final class DefaultBearerJwtTokenResolver implements BearerTokenResolver 
         }
         Matcher matcher = authorizationPattern.matcher(authorization);
         if (!matcher.matches()) {
-            throw new JwtAuthenticationException("Bearer token is malformed");
+            throw new JwtAuthenticationException("令牌格式错误");
         }
         return matcher.group("token");
     }

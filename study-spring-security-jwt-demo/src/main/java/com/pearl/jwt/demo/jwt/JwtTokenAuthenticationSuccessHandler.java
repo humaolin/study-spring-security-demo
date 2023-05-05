@@ -2,6 +2,9 @@ package com.pearl.jwt.demo.jwt;
 
 import cn.hutool.json.JSONUtil;
 import cn.hutool.jwt.JWTUtil;
+import com.pearl.jwt.demo.response.R;
+import com.pearl.jwt.demo.response.ResponseUtils;
+import com.pearl.jwt.demo.response.ResultCodeEnum;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,16 +35,14 @@ public class JwtTokenAuthenticationSuccessHandler implements AuthenticationSucce
         response.setContentType("application/json;charset=utf-8"); // 返回JSON
         response.setStatus(HttpStatus.OK.value());  // 状态码 200
         Map<String, Object> result = new HashMap<>(); // 返回结果
-        // 响应数据
-        result.put("msg", "登录成功");
-        result.put("code", 200);
-        // 封装为JWT
+        // JWT信息
         Map<String, Object> jwtMap = new HashMap<>();
-        jwtMap.put("username", authentication.getName()); // 用户名
+        jwtMap.put("username", authentication.getName()); // 用户名作为用户唯一标识，实际开发可以用用户ID
         jwtMap.put("expire_time", System.currentTimeMillis() + 1000 * 60 * 60); // 过期时间，一个小时后过期
-        jwtMap.put("authentication", authentication); // 认证信息
+        // 创建令牌
         String token = JWTUtil.createToken(jwtMap, AuthenticationConstants.JWT_KEY.getBytes());
-        result.put("data", token);
-        response.getWriter().write(JSONUtil.toJsonStr(result));
+        result.put("token", token);
+        // 响应数据
+        ResponseUtils.buildResponse(response, R.response(ResultCodeEnum.AUTHENTICATION_SUCCESS, result), HttpStatus.UNAUTHORIZED);
     }
 }
