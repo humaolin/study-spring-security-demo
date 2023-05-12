@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>第三方授权</title>
+</head>
+<style>
+
+    html{
+        padding: 0px;
+        margin: 0px;
+    }
+
+    .title {
+        background-color: #17a2b8;
+        height: 50px;
+        padding-left: 20%;
+        padding-right: 20%;
+        color: white;
+        line-height: 50px;
+        font-size: 18px;
+    }
+    .title-left{
+        float: right;
+    }
+    .title-right{
+        float: left;
+    }
+    .title-left a{
+        color: white;
+    }
+    .container{
+        clear: both;
+        text-align: center;
+    }
+    .btn {
+        width: 350px;
+        height: 35px;
+        line-height: 35px;
+        cursor: pointer;
+        margin-top: 20px;
+        border-radius: 3px;
+        background-color: #17a2b8;
+        color: white;
+        border: none;
+        font-size: 15px;
+    }
+</style>
+<body style="margin: 0px">
+<div class="title">
+    <div class="title-right">第三方授权</div>
+    <div class="title-left">
+        <a href="#help">帮助</a>
+    </div>
+</div>
+<div class="container">
+    <h3 th:text="${clientName}+' 申请获取以下权限：'"></h3>
+    <!--点击同意授权后，重新请求授权-->
+    <form method="post" th:action="@{/oauth2/authorize}">
+        <input type="hidden" name="client_id" th:value="${client_id}">
+        <input type="hidden" name="state" th:value="${state}">
+        <div th:each="map,mapStat:${scopeMap}">
+            <input checked type="checkbox" name="scope" th:value="${map.key}"  th:id="${map.key}"/>
+            <label th:for="${map.key}" th:text="${map.value}"></label>
+        </div>
+        <button class="btn" type="submit">同意/授权</button>
+    </form>
+    授权后表明你已同意 <a  href="#boot" style="color: #E9686B">OAUTH2 服务协议</a>
+</div>
+</body>
+</html>

@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 
 /**
+ *
  * @author TangDan
  * @version 1.0
  * @since 2023/4/7
@@ -26,12 +27,6 @@ public class JwtAuthenticationConfigurer extends AbstractHttpConfigurer<JwtAuthe
 
     @Override
     public void init(HttpSecurity http) throws Exception {
-        //
-        //
-        // `Session`保存在服务端内存中，
-        // 初始化方法
-        // Token：服务端验证客户端发送过来的 Token 时，还需要查询数据库获取用户信息，然后验证 Token 是否有效。
-        // JWT：将 Token 和 Payload 加密后存储于客户端，服务端只需要使用密钥解密进行校验（校验也是 JWT 自己实现的）即可，不需要查询或者减少查询数据库，因为 JWT 自包含了用户信息和加密的数据。
     }
 
     @Override

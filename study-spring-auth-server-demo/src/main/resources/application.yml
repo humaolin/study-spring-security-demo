@@ -8,3 +8,13 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/study?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true
     username: root
     password: 123456
+  thymeleaf:
+    # 是否为Web框架启用Thymeleaf视图解析
+    enabled: true
+    servlet:
+      # ContentType HTTP响应的Content-Type类型 默认text/html
+      content-type: text/html
+      # 应该尽可能的写入输出或者缓冲直到模板处理完成
+      produce-partial-output-while-processing: true
+    # 是否开启缓存，开发环境关闭
+    cache: true

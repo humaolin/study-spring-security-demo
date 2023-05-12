@@ -5,6 +5,7 @@ package com.pearl.authserver.demo.config;
  * @version 1.0
  * @since 2023/4/25
  */
+
 import lombok.Data;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,16 +23,18 @@ public class SpringSecurityConfig {
 
     /**
      * Spring Security SecurityFilterChain 认证配置
-     *
      */
     @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
             throws Exception {
         http.authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers("/login","/bootstrap.min.css","/login.css","/error","/callback").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults());
+                .formLogin().loginPage("/login")
+                .loginProcessingUrl("/login");
+        http.csrf().disable();
         return http.build();
     }
 

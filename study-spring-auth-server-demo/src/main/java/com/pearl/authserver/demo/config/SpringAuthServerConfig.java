@@ -5,6 +5,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.pearl.authserver.demo.service.OidcUserInfoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -12,9 +14,13 @@ import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -27,19 +33,25 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationContext;
+import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * @author TangDan
@@ -52,7 +64,7 @@ public class SpringAuthServerConfig {
     /**
      * 授权服务器 SecurityFilterChain
      */
-    @Bean
+/*    @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
             throws Exception {
@@ -66,14 +78,93 @@ public class SpringAuthServerConfig {
                 // Accept access tokens for User Info and/or Client Registration
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
         return http.build();
+    }*/
+
+    /**
+     * OIDC授权服务器
+     */
+
+    @Autowired
+    OidcUserInfoService oidcUserInfoService;
+
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        // http://localhost:8080/oauth2/authorize?client_id=client&scope=openid email&state=123456&response_type=code&redirect_uri=http://127.0.0.1:8080/callback
+        // 授权服务器配置类
+        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
+        RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
+        // 添加自定义授权页面
+/*        authorizationServerConfigurer.authorizationEndpoint(endpoint -> {
+            endpoint.consentPage("/oauth2/consent");
+        });*/
+        // 授权端点配置
+        /**
+         * 	authorizationRequestConverter(): 添加一个 AuthenticationConverter（预处理器），当试图从 HttpServletRequest 中提取 OAuth2授权请求（或consent）到 OAuth2AuthorizationCodeRequestAuthenticationToken 或 OAuth2AuthorizationConsentAuthenticationToken 的实例时使用。
+         * authorizationRequestConverters(): 设置 Consumer，提供对默认和（可选）添加的 AuthenticationConverter List 的访问，允许添加、删除或定制特定的 AuthenticationConverter 的能力。
+         * authenticationProvider(): 添加一个 AuthenticationProvider（主处理器），用于验证 OAuth2AuthorizationCodeRequestAuthenticationToken 或 OAuth2AuthorizationConsentAuthenticationToken。
+         * authenticationProviders(): 设置 Consumer，提供对默认和（可选）添加的 AuthenticationProvider List 的访问，允许添加、删除或定制特定的 AuthenticationProvider。
+         * authorizationResponseHandler(): AuthenticationSuccessHandler（后处理器），用于处理 "已认证" 的 OAuth2AuthorizationCodeRequestAuthenticationToken 并返回 OAuth2AuthorizationResponse。
+         * errorResponseHandler(): AuthenticationFailureHandler（后处理器），用于处理 OAuth2AuthorizationCodeRequestAuthenticationException，并返回 OAuth2Error 响应。
+         * OAuth2AuthorizationEndpointConfigurer 配置 OAuth2AuthorizationEndpointFilter，并将其与 OAuth2 授权服务器 SecurityFilterChain @Bean 注册。OAuth2AuthorizationEndpointFilter 是处理OAuth2 授权请求（和consent）的filter。
+         *
+         * OAuth2AuthorizationEndpointFilter 配置的默认值如下。
+         *
+         * AuthenticationConverter — 一个由 OAuth2AuthorizationCodeRequestAuthenticationConverter 和 OAuth2AuthorizationConsentAuthenticationConverter 组成的 DelegatingAuthenticationConverter。
+         *
+         * AuthenticationManager — 一个由 OAuth2AuthorizationCodeRequestAuthenticationProvider 和 OAuth2AuthorizationConsentAuthenticationProvider 组成的 AuthenticationManager。
+         *
+         * AuthenticationSuccessHandler — 一个内部实现，
+         * 处理一个 "已认证" 的 OAuth2AuthorizationCodeRequestAuthenticationToken 并返回 OAuth2AuthorizationResponse。
+         *
+         * AuthenticationFailureHandler — 一个内部实现，
+         * 使用与 OAuth2AuthorizationCodeRequestAuthenticationException 相关的 OAuth2Error，并返回 OAuth2Error 响应。
+         */
+        authorizationServerConfigurer
+                .authorizationEndpoint(authorizationEndpoint ->
+                        authorizationEndpoint
+                                .authorizationRequestConverter(authorizationRequestConverter)
+                                .authorizationRequestConverters(authorizationRequestConvertersConsumer)
+                                .authenticationProvider(authenticationProvider)
+                                .authenticationProviders(authenticationProvidersConsumer)
+                                .authorizationResponseHandler(authorizationResponseHandler) // 授权成功处理器
+                                .errorResponseHandler(errorResponseHandler) // 授权失败处理器
+                                // 同意授权页面URI，
+                                .consentPage("/oauth2/consent")
+                );
+        // 创建用户信息映射器
+        Function<OidcUserInfoAuthenticationContext, OidcUserInfo> userInfoMapper = (context) -> {
+            OidcUserInfoAuthenticationToken authentication = context.getAuthentication();
+            JwtAuthenticationToken principal = (JwtAuthenticationToken) authentication.getPrincipal();
+            Set<String> scopes = context.getAuthorization().getAuthorizedScopes();
+            return oidcUserInfoService.loadUser(principal.getName(), scopes);
+        };
+        // 配置用户信息查询
+        authorizationServerConfigurer.oidc((oidc) -> oidc
+                .userInfoEndpoint((userInfo) -> userInfo
+                        .userInfoMapper(userInfoMapper)
+                ));
+        // 安全配置
+        http.securityMatcher(endpointsMatcher)
+                .authorizeHttpRequests((authorize) ->
+                        authorize.
+                                anyRequest().authenticated())
+                .csrf(AbstractHttpConfigurer::disable)
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+                .exceptionHandling((exceptions) -> exceptions
+                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
+                )
+                .apply(authorizationServerConfigurer);
+        return http.build();
     }
+
 
     /**
      * 基于数据库存授权信息
      */
     @Bean
-    public OAuth2AuthorizationService authorizationService(JdbcTemplate jdbcTemplate,RegisteredClientRepository clientRepository) {
-        return new JdbcOAuth2AuthorizationService(jdbcTemplate,clientRepository);
+    public OAuth2AuthorizationService authorizationService(JdbcTemplate jdbcTemplate, RegisteredClientRepository clientRepository) {
+        return new JdbcOAuth2AuthorizationService(jdbcTemplate, clientRepository);
     }
     /**
      * 客户端配置，基于内存
@@ -106,7 +197,6 @@ public class SpringAuthServerConfig {
     }
 
 
-
     private RegisteredClient createDefaultClient() {
         // 1. 创建客户端配置
         ClientSettings clientSettings = ClientSettings.builder()
@@ -133,6 +223,9 @@ public class SpringAuthServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 .redirectUri("http://127.0.0.1:8080/callback")
                 .scope("user_info")
+                .scope(OidcScopes.OPENID) // OIDC
+                .scope(OidcScopes.PROFILE)
+                .scope(OidcScopes.EMAIL)
                 .clientSettings(clientSettings)
                 .tokenSettings(tokenSettings)
                 .build();

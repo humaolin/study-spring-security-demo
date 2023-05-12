@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ *
  * @author TangDan
  * @version 1.0
  * @since 2023/3/29
@@ -37,9 +38,9 @@ public class JwtTokenAuthenticationSuccessHandler implements AuthenticationSucce
         Map<String, Object> result = new HashMap<>(); // 返回结果
         // JWT信息
         Map<String, Object> jwtMap = new HashMap<>();
-        jwtMap.put("username", authentication.getName()); // 用户名作为用户唯一标识，实际开发可以用用户ID
+        jwtMap.put("username", authentication.getName()); // 用户名作为用户唯一标识，实际开发可以使用 用户ID
         jwtMap.put("expire_time", System.currentTimeMillis() + 1000 * 60 * 60); // 过期时间，一个小时后过期
-        // 创建令牌
+        // 创建令牌（hutool工具）
         String token = JWTUtil.createToken(jwtMap, AuthenticationConstants.JWT_KEY.getBytes());
         result.put("token", token);
         // 响应数据

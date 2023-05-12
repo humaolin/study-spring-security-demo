@@ -28,7 +28,6 @@ public class SecurityConfig {
         // 开启表单登录
         http.formLogin().successHandler(new JwtTokenAuthenticationSuccessHandler());
         http.csrf().disable();
-        // JWT
         // 开启JWT（默认关闭）
         http.apply(jwtAuth());
         return http.build();

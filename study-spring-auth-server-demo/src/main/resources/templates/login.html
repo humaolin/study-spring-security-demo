@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>明珠科技认证中心</title>
+    <link th:href="@{/bootstrap.min.css}" rel="stylesheet"  crossorigin="anonymous">
+    <link th:href="@{/login.css}" rel="stylesheet" crossorigin="anonymous"/>
+</head>
+<body>
+<script>
+    const urlParams = new URL(window.location.href)
+</script>
+<div class="container">
+    <form name="loginForm" class="form-signin" method="post" th:action="@{/login}">
+        <h2 class="form-signin-heading">明珠科技认证中心</h2>
+        <p style="color: red" th:if="${param.error}">用户名或密码错误</p>
+        <p>
+            <label for="username" class="sr-only">用户名</label>
+            <input type="text" id="username" name="username" class="form-control" placeholder="输入用户名" required autofocus>
+        </p>
+        <p>
+            <label for="password" class="sr-only">密码</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="输入密码" required>
+        </p>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
+    </form>
+</div>
+</body>
+</html>
