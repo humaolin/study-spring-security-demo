@@ -149,8 +149,8 @@ public class SpringAuthServerConfig {
                                 .accessTokenRequestConverters(accessTokenRequestConvertersConsumer())
                                 /*   .authenticationProvider(authenticationProvider)*/
                                 .authenticationProviders(authenticationProvidersConsumer(http))
-                                .accessTokenResponseHandler(new MyAuthenticationSuccessHandler())
-                                .errorResponseHandler(new MyAuthenticationFailureHandler())
+                                .accessTokenResponseHandler(new TokenEndpointAuthenticationSuccessHandler())
+                                .errorResponseHandler(new TokenEndpointAuthenticationFailureHandler())
                 );
         // 创建用户信息映射器
         Function<OidcUserInfoAuthenticationContext, OidcUserInfo> userInfoMapper = (context) -> {
