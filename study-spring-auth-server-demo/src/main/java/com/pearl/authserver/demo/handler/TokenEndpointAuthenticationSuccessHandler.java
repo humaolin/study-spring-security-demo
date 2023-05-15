@@ -25,7 +25,7 @@ import java.util.Map;
  * @version 1.0
  * @since 2023/5/15
  */
-public class MyAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+public class TokenEndpointAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     private final HttpMessageConverter<OAuth2AccessTokenResponse> accessTokenHttpResponseConverter=new OAuth2AccessTokenResponseHttpMessageConverter();
 
     @Override
@@ -35,10 +35,14 @@ public class MyAuthenticationSuccessHandler implements AuthenticationSuccessHand
 
     private void sendAccessTokenResponse(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         OAuth2AccessTokenAuthenticationToken accessTokenAuthentication = (OAuth2AccessTokenAuthenticationToken)authentication;
-        OAuth2AccessToken accessToken = accessTokenAuthentication.getAccessToken();
-        OAuth2RefreshToken refreshToken = accessTokenAuthentication.getRefreshToken();
-        Map<String, Object> additionalParameters = accessTokenAuthentication.getAdditionalParameters();
-        OAuth2AccessTokenResponse.Builder builder = OAuth2AccessTokenResponse.withToken(accessToken.getTokenValue()).tokenType(accessToken.getTokenType()).scopes(accessToken.getScopes());
+        OAuth2AccessToken accessToken = accessTokenAuthentication.getAccessToken(); // 访问令牌对象
+        OAuth2RefreshToken refreshToken = accessTokenAuthentication.getRefreshToken(); // 刷新令牌对象
+        Map<String, Object> additionalParameters = accessTokenAuthentication.getAdditionalParameters(); // 额外参数
+        // 构建响应对象
+        OAuth2AccessTokenResponse.Builder builder = OAuth2AccessTokenResponse
+                .withToken(accessToken.getTokenValue())
+                .tokenType(accessToken.getTokenType())
+                .scopes(accessToken.getScopes());
         if (accessToken.getIssuedAt() != null && accessToken.getExpiresAt() != null) {
             builder.expiresIn(ChronoUnit.SECONDS.between(accessToken.getIssuedAt(), accessToken.getExpiresAt()));
         }
@@ -46,12 +50,11 @@ public class MyAuthenticationSuccessHandler implements AuthenticationSuccessHand
             builder.refreshToken(refreshToken.getTokenValue());
         }
         if (!CollectionUtils.isEmpty(additionalParameters)) {
-            builder.additionalParameters(additionalParameters);
+            builder.additionalParameters(additionalParameters); // // 额外参数，比如 id_token
         }
         OAuth2AccessTokenResponse accessTokenResponse = builder.build();
         ServletServerHttpResponse httpResponse = new ServletServerHttpResponse(response);
+        // 响应写出
         this.accessTokenHttpResponseConverter.write(accessTokenResponse, null, httpResponse);
     }
-
-
 }

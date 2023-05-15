@@ -21,7 +21,7 @@ import java.io.IOException;
  * @version 1.0
  * @since 2023/5/15
  */
-public class MyAuthenticationFailureHandler  implements AuthenticationFailureHandler {
+public class TokenEndpointAuthenticationFailureHandler  implements AuthenticationFailureHandler {
 
     private final HttpMessageConverter<OAuth2Error> errorHttpResponseConverter = new OAuth2ErrorHttpMessageConverter();
 
