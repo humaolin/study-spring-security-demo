@@ -5,6 +5,10 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.pearl.authserver.demo.handler.*;
+import com.pearl.authserver.demo.password.OAuth2AuthenticationPasswordConverter;
+import com.pearl.authserver.demo.password.OAuth2AuthorizationPasswordAuthenticationProvider;
+import com.pearl.authserver.demo.password.OAuth2ConfigurerUtils;
 import com.pearl.authserver.demo.service.OidcUserInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -12,21 +16,23 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.*;
+import org.springframework.security.oauth2.server.authorization.authentication.*;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -39,8 +45,11 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationCodeRequestAuthenticationConverter;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationConsentAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -49,8 +58,11 @@ import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -114,23 +126,31 @@ public class SpringAuthServerConfig {
          *
          * AuthenticationManager — 一个由 OAuth2AuthorizationCodeRequestAuthenticationProvider 和 OAuth2AuthorizationConsentAuthenticationProvider 组成的 AuthenticationManager。
          *
-         * AuthenticationSuccessHandler — 一个内部实现，
-         * 处理一个 "已认证" 的 OAuth2AuthorizationCodeRequestAuthenticationToken 并返回 OAuth2AuthorizationResponse。
-         *
-         * AuthenticationFailureHandler — 一个内部实现，
-         * 使用与 OAuth2AuthorizationCodeRequestAuthenticationException 相关的 OAuth2Error，并返回 OAuth2Error 响应。
          */
         authorizationServerConfigurer
+                //.authorizationConsentService()
                 .authorizationEndpoint(authorizationEndpoint ->
                         authorizationEndpoint
-                                .authorizationRequestConverter(authorizationRequestConverter)
-                                .authorizationRequestConverters(authorizationRequestConvertersConsumer)
-                                .authenticationProvider(authenticationProvider)
-                                .authenticationProviders(authenticationProvidersConsumer)
-                                .authorizationResponseHandler(authorizationResponseHandler) // 授权成功处理器
-                                .errorResponseHandler(errorResponseHandler) // 授权失败处理器
-                                // 同意授权页面URI，
-                                .consentPage("/oauth2/consent")
+
+                                .authorizationRequestConverters(authorizationRequestConvertersConsumer())
+                                /*                      .authorizationRequestConverters(authorizationRequestConvertersConsumer)
+                                                    .authenticationProvider(authenticationProvider)
+                                                    .authenticationProviders(authenticationProvidersConsumer)*/
+                                .authenticationProviders(configureAuthenticationValidator())
+                                .authorizationResponseHandler(new PearlAuthenticationSuccessHandler()) // 授权成功处理器
+                                .errorResponseHandler(new PearlAuthenticationFailureHandler()) // 授权失败处理器
+                                .consentPage("/oauth2/consent") // 同意授权页面URI
+                );
+
+        authorizationServerConfigurer
+                .tokenEndpoint(tokenEndpoint ->
+                        tokenEndpoint
+                                //.accessTokenRequestConverter(accessTokenRequestConverter)
+                                .accessTokenRequestConverters(accessTokenRequestConvertersConsumer())
+                                /*   .authenticationProvider(authenticationProvider)*/
+                                .authenticationProviders(authenticationProvidersConsumer(http))
+                                .accessTokenResponseHandler(new MyAuthenticationSuccessHandler())
+                                .errorResponseHandler(new MyAuthenticationFailureHandler())
                 );
         // 创建用户信息映射器
         Function<OidcUserInfoAuthenticationContext, OidcUserInfo> userInfoMapper = (context) -> {
@@ -158,6 +178,57 @@ public class SpringAuthServerConfig {
         return http.build();
     }
 
+    private Consumer<List<AuthenticationConverter>> accessTokenRequestConvertersConsumer() {
+        return (authorizationRequestConverters) -> {
+            authorizationRequestConverters.add(new OAuth2AuthenticationPasswordConverter());
+        };
+    }
+
+    private Consumer<List<AuthenticationProvider>> authenticationProvidersConsumer(HttpSecurity httpSecurity
+    ) {
+        JwtGenerator jwtGenerator = OAuth2ConfigurerUtils.getJwtGenerator(httpSecurity);
+        return (authenticationProviders) ->
+                authenticationProviders.add(new OAuth2AuthorizationPasswordAuthenticationProvider(userDetailsService, jwtGenerator));
+
+    }
+
+    @Autowired
+    public UserDetailsService userDetailsService;
+
+    private static List<AuthenticationProvider> createDefaultAuthenticationProviders(HttpSecurity httpSecurity) {
+        List<AuthenticationProvider> authenticationProviders = new ArrayList();
+        OAuth2AuthorizationService authorizationService = OAuth2ConfigurerUtils.getAuthorizationService(httpSecurity);
+        OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator = OAuth2ConfigurerUtils.getTokenGenerator(httpSecurity);
+        OAuth2AuthorizationCodeAuthenticationProvider authorizationCodeAuthenticationProvider = new OAuth2AuthorizationCodeAuthenticationProvider(authorizationService, tokenGenerator);
+        authenticationProviders.add(authorizationCodeAuthenticationProvider);
+        OAuth2RefreshTokenAuthenticationProvider refreshTokenAuthenticationProvider = new OAuth2RefreshTokenAuthenticationProvider(authorizationService, tokenGenerator);
+        authenticationProviders.add(refreshTokenAuthenticationProvider);
+        OAuth2ClientCredentialsAuthenticationProvider clientCredentialsAuthenticationProvider = new OAuth2ClientCredentialsAuthenticationProvider(authorizationService, tokenGenerator);
+        authenticationProviders.add(clientCredentialsAuthenticationProvider);
+        return authenticationProviders;
+    }
+
+
+    private Consumer<List<AuthenticationProvider>> configureAuthenticationValidator() {
+        return (authenticationProviders) ->
+                authenticationProviders.forEach((authenticationProvider) -> {
+                    if (authenticationProvider instanceof OAuth2AuthorizationCodeRequestAuthenticationProvider) {
+                        Consumer<OAuth2AuthorizationCodeRequestAuthenticationContext> authenticationValidator =
+                                new CustomValidator()
+                                        .andThen(OAuth2AuthorizationCodeRequestAuthenticationValidator.DEFAULT_SCOPE_VALIDATOR);
+
+                        ((OAuth2AuthorizationCodeRequestAuthenticationProvider) authenticationProvider)
+                                .setAuthenticationValidator(authenticationValidator);
+                    }
+                });
+    }
+
+    private Consumer<List<AuthenticationConverter>> authorizationRequestConvertersConsumer() {
+        return (authorizationRequestConverters) -> {
+            authorizationRequestConverters.add(new PearlAuthenticationConverter());
+        };
+    }
+
 
     /**
      * 基于数据库存授权信息
@@ -165,6 +236,14 @@ public class SpringAuthServerConfig {
     @Bean
     public OAuth2AuthorizationService authorizationService(JdbcTemplate jdbcTemplate, RegisteredClientRepository clientRepository) {
         return new JdbcOAuth2AuthorizationService(jdbcTemplate, clientRepository);
+    }
+
+    /**
+     * 基于数据库存储用户、客户端授权关联信息
+     */
+    @Bean
+    public OAuth2AuthorizationConsentService authorizationConsentService(JdbcTemplate jdbcTemplate, RegisteredClientRepository clientRepository) {
+        return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, clientRepository);
     }
     /**
      * 客户端配置，基于内存
@@ -221,6 +300,7 @@ public class SpringAuthServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .authorizationGrantType(AuthorizationGrantType.PASSWORD)// 密码模式
                 .redirectUri("http://127.0.0.1:8080/callback")
                 .scope("user_info")
                 .scope(OidcScopes.OPENID) // OIDC
