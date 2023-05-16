@@ -138,8 +138,8 @@ public class SpringAuthServerConfig {
                                 .accessTokenRequestConverters(accessTokenRequestConvertersConsumer())
                                 /*   .authenticationProvider(authenticationProvider)*/
                                 .authenticationProviders(authenticationProvidersConsumer(http))
-                                .accessTokenResponseHandler(new TokenEndpointAuthenticationSuccessHandler())
-                                .errorResponseHandler(new TokenEndpointAuthenticationFailureHandler())
+                                //.accessTokenResponseHandler(new TokenEndpointAuthenticationSuccessHandler())
+                        //.errorResponseHandler(new TokenEndpointAuthenticationFailureHandler())
                 );
         // 授权服务器元数据配置
         authorizationServerConfigurer
