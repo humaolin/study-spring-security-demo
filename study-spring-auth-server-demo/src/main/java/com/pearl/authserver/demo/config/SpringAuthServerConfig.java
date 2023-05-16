@@ -6,8 +6,8 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.pearl.authserver.demo.handler.*;
-import com.pearl.authserver.demo.password.OAuth2AuthenticationPasswordConverter;
-import com.pearl.authserver.demo.password.OAuth2AuthorizationPasswordAuthenticationProvider;
+import com.pearl.authserver.demo.password.OAuth2AuthenticationResourceOwnerPasswordConverter;
+import com.pearl.authserver.demo.password.OAuth2AuthorizationResourceOwnerPasswordAuthenticationProvider;
 import com.pearl.authserver.demo.password.OAuth2ConfigurerUtils;
 import com.pearl.authserver.demo.service.OidcUserInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,10 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
+import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2Token;
@@ -39,6 +42,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerMetadataEndpointConfigurer;
 import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationContext;
 import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
@@ -53,6 +57,7 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.swing.*;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
@@ -111,22 +116,6 @@ public class SpringAuthServerConfig {
             endpoint.consentPage("/oauth2/consent");
         });*/
         // 授权端点配置
-        /**
-         * 	authorizationRequestConverter(): 添加一个 AuthenticationConverter（预处理器），当试图从 HttpServletRequest 中提取 OAuth2授权请求（或consent）到 OAuth2AuthorizationCodeRequestAuthenticationToken 或 OAuth2AuthorizationConsentAuthenticationToken 的实例时使用。
-         * authorizationRequestConverters(): 设置 Consumer，提供对默认和（可选）添加的 AuthenticationConverter List 的访问，允许添加、删除或定制特定的 AuthenticationConverter 的能力。
-         * authenticationProvider(): 添加一个 AuthenticationProvider（主处理器），用于验证 OAuth2AuthorizationCodeRequestAuthenticationToken 或 OAuth2AuthorizationConsentAuthenticationToken。
-         * authenticationProviders(): 设置 Consumer，提供对默认和（可选）添加的 AuthenticationProvider List 的访问，允许添加、删除或定制特定的 AuthenticationProvider。
-         * authorizationResponseHandler(): AuthenticationSuccessHandler（后处理器），用于处理 "已认证" 的 OAuth2AuthorizationCodeRequestAuthenticationToken 并返回 OAuth2AuthorizationResponse。
-         * errorResponseHandler(): AuthenticationFailureHandler（后处理器），用于处理 OAuth2AuthorizationCodeRequestAuthenticationException，并返回 OAuth2Error 响应。
-         * OAuth2AuthorizationEndpointConfigurer 配置 OAuth2AuthorizationEndpointFilter，并将其与 OAuth2 授权服务器 SecurityFilterChain @Bean 注册。OAuth2AuthorizationEndpointFilter 是处理OAuth2 授权请求（和consent）的filter。
-         *
-         * OAuth2AuthorizationEndpointFilter 配置的默认值如下。
-         *
-         * AuthenticationConverter — 一个由 OAuth2AuthorizationCodeRequestAuthenticationConverter 和 OAuth2AuthorizationConsentAuthenticationConverter 组成的 DelegatingAuthenticationConverter。
-         *
-         * AuthenticationManager — 一个由 OAuth2AuthorizationCodeRequestAuthenticationProvider 和 OAuth2AuthorizationConsentAuthenticationProvider 组成的 AuthenticationManager。
-         *
-         */
         authorizationServerConfigurer
                 //.authorizationConsentService()
                 .authorizationEndpoint(authorizationEndpoint ->
@@ -141,7 +130,7 @@ public class SpringAuthServerConfig {
                                 .errorResponseHandler(new PearlAuthenticationFailureHandler()) // 授权失败处理器
                                 .consentPage("/oauth2/consent") // 同意授权页面URI
                 );
-
+        // 令牌端点配置
         authorizationServerConfigurer
                 .tokenEndpoint(tokenEndpoint ->
                         tokenEndpoint
@@ -152,6 +141,11 @@ public class SpringAuthServerConfig {
                                 .accessTokenResponseHandler(new TokenEndpointAuthenticationSuccessHandler())
                                 .errorResponseHandler(new TokenEndpointAuthenticationFailureHandler())
                 );
+        // 授权服务器元数据配置
+        authorizationServerConfigurer
+                .authorizationServerMetadataEndpoint(authorizationServerMetadataEndpoint ->
+                        authorizationServerMetadataEndpoint
+                                .authorizationServerMetadataCustomizer(authorizationServerMetadata()));
         // 创建用户信息映射器
         Function<OidcUserInfoAuthenticationContext, OidcUserInfo> userInfoMapper = (context) -> {
             OidcUserInfoAuthenticationToken authentication = context.getAuthentication();
@@ -178,36 +172,32 @@ public class SpringAuthServerConfig {
         return http.build();
     }
 
+    public Consumer<OAuth2AuthorizationServerMetadata.Builder> authorizationServerMetadata() {
+        return (authorizationServerMetadata) -> {
+            authorizationServerMetadata.grantType(AuthorizationGrantType.PASSWORD.getValue());
+        };
+    }
+
     private Consumer<List<AuthenticationConverter>> accessTokenRequestConvertersConsumer() {
         return (authorizationRequestConverters) -> {
-            authorizationRequestConverters.add(new OAuth2AuthenticationPasswordConverter());
+            authorizationRequestConverters.add(new OAuth2AuthenticationResourceOwnerPasswordConverter());
         };
     }
 
     private Consumer<List<AuthenticationProvider>> authenticationProvidersConsumer(HttpSecurity httpSecurity
     ) {
-        JwtGenerator jwtGenerator = OAuth2ConfigurerUtils.getJwtGenerator(httpSecurity);
+        OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator = OAuth2ConfigurerUtils.getTokenGenerator(httpSecurity);
         return (authenticationProviders) ->
-                authenticationProviders.add(new OAuth2AuthorizationPasswordAuthenticationProvider(userDetailsService, jwtGenerator));
+                authenticationProviders.add(new OAuth2AuthorizationResourceOwnerPasswordAuthenticationProvider(userDetailsService, tokenGenerator,passwordEncoder,userDetailsPasswordService));
 
     }
 
     @Autowired
     public UserDetailsService userDetailsService;
-
-    private static List<AuthenticationProvider> createDefaultAuthenticationProviders(HttpSecurity httpSecurity) {
-        List<AuthenticationProvider> authenticationProviders = new ArrayList();
-        OAuth2AuthorizationService authorizationService = OAuth2ConfigurerUtils.getAuthorizationService(httpSecurity);
-        OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator = OAuth2ConfigurerUtils.getTokenGenerator(httpSecurity);
-        OAuth2AuthorizationCodeAuthenticationProvider authorizationCodeAuthenticationProvider = new OAuth2AuthorizationCodeAuthenticationProvider(authorizationService, tokenGenerator);
-        authenticationProviders.add(authorizationCodeAuthenticationProvider);
-        OAuth2RefreshTokenAuthenticationProvider refreshTokenAuthenticationProvider = new OAuth2RefreshTokenAuthenticationProvider(authorizationService, tokenGenerator);
-        authenticationProviders.add(refreshTokenAuthenticationProvider);
-        OAuth2ClientCredentialsAuthenticationProvider clientCredentialsAuthenticationProvider = new OAuth2ClientCredentialsAuthenticationProvider(authorizationService, tokenGenerator);
-        authenticationProviders.add(clientCredentialsAuthenticationProvider);
-        return authenticationProviders;
-    }
-
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private UserDetailsPasswordService userDetailsPasswordService;
 
     private Consumer<List<AuthenticationProvider>> configureAuthenticationValidator() {
         return (authenticationProviders) ->
@@ -295,7 +285,7 @@ public class SpringAuthServerConfig {
         return RegisteredClient.withId("123456") // ID
                 .clientName("测试客户端")
                 .clientId("client")
-                .clientSecret("{noop}secret")
+                .clientSecret(new BCryptPasswordEncoder().encode("secret"))
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
@@ -317,8 +307,23 @@ public class SpringAuthServerConfig {
      */
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
+/*        return AuthorizationServerSettings.builder()
+                // 发行者（一般设置为访问域名）
+                .issuer("https://www.qq.com") // 默认 http://localhost:8080
+                // 授权端点路径
+                .authorizationEndpoint("/v2/oidc/authorize") // 默认 /oauth2/authorize
+                // 令牌端点路径
+                .tokenEndpoint("/v2/oidc/token") // 默认 /oauth2/token
+                // 令牌内省端点
+                .tokenIntrospectionEndpoint("/oidc/introspect") // 默认 /oauth2/introspect
+                // 令牌销毁端点
+                .tokenRevocationEndpoint("/oidc/revoke")// 默认 /oauth2/revoke
+                // OIDC 用户信息端点
+                .oidcUserInfoEndpoint("/user-info")
+                .build();*/
         return AuthorizationServerSettings.builder().build();
     }
+
 
     /**
      * 解码签名访问令牌
@@ -358,5 +363,10 @@ public class SpringAuthServerConfig {
             throw new IllegalStateException(ex);
         }
         return keyPair;
+    }
+
+    public static void main(String[] args) {
+        String secret = new BCryptPasswordEncoder().encode("123456");
+        System.out.println(secret);
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -29,7 +30,7 @@ public class SpringSecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
             throws Exception {
         http.authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/login","/bootstrap.min.css","/login.css","/error","/callback").permitAll()
+                        .requestMatchers("/login", "/bootstrap.min.css", "/login.css", "/error", "/callback").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin().loginPage("/login")
@@ -43,12 +44,18 @@ public class SpringSecurityConfig {
      */
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails userDetails = User.withDefaultPasswordEncoder()
-                .username("user")
-                .password("123456")
+        UserDetails userDetails = User
+                .withUsername("user")
+                .password("$2a$10$K/Y1kttXG9aNHOhjneXVku9kxC36uQjc9d36yQXhHjHRwf/ciGT/a")  // BCrypt： 123456
+                //.password(new BCryptPasswordEncoder().encode("123456"))
                 .roles("USER")
                 .build();
         return new InMemoryUserDetailsManager(userDetails);
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
 
