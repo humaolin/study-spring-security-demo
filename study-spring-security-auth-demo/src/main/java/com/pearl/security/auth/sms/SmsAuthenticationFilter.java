@@ -79,11 +79,11 @@ public class SmsAuthenticationFilter extends AbstractAuthenticationProcessingFil
         this.postOnly = postOnly;
     }
 
-    public final String getUsernameParameter() {
+    public final String getPhoneParameter() {
         return this.phoneParameter;
     }
 
-    public final String getPasswordParameter() {
+    public final String getSmsCodeParameter() {
         return this.smsCodeParameter;
     }
 }

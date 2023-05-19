@@ -42,13 +42,14 @@ public class SmsAuthenticationProvider implements AuthenticationProvider {
         if (!inputCode.equals(redisCode)) {
             throw new BadCredentialsException("输入的验证码不正确，请重新输入");
         }
+        stringRedisTemplate.delete(phone);// 删除验证码
         // 2. 根据手机号查询用户信息
         UserDetails userDetails = userDetailsServiceImpl.loadUserByPhone(phone);
         if (userDetails == null) {
             throw new InternalAuthenticationServiceException("phone用户不存在，请注册");
         }
-        // 3. 创建已认证对象,
-        SmsAuthenticationToken authenticationResult = new SmsAuthenticationToken(principal,inputCode, userDetails.getAuthorities());
+        // 3. 创建已认证对象
+        SmsAuthenticationToken authenticationResult = new SmsAuthenticationToken(principal,userDetails, userDetails.getAuthorities());
         authenticationResult.setDetails(authenticationToken.getDetails());
         return authenticationResult;
     }

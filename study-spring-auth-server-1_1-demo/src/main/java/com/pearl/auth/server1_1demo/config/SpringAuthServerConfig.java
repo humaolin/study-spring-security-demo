@@ -95,6 +95,7 @@ public class SpringAuthServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .authorizationGrantType(AuthorizationGrantType.DEVICE_CODE) // 设备授权
                 .redirectUri("http://127.0.0.1:8080/callback")
                 .scope("user_info")
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())

@@ -4,6 +4,7 @@ import cn.hutool.core.lang.UUID;
 
 import com.pearl.security.auth.filter.CaptchaVerifyFilter;
 import com.pearl.security.auth.handler.JsonAuthenticationFailureHandler;
+import com.pearl.security.auth.handler.JsonAuthenticationSuccessHandler;
 import com.pearl.security.auth.handler.JsonLogoutSuccessHandler;
 import com.pearl.security.auth.handler.MyLogoutHandler;
 import com.pearl.security.auth.token.JwtTokenAuthenticationSuccessHandler;
@@ -13,9 +14,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -28,7 +31,7 @@ import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
-import org.springframework.security.web.context.SecurityContextHolderFilter;
+import org.springframework.security.web.context.*;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -124,20 +127,24 @@ public class PearlWebSecurityConfig {
     }*/
 
     /**
-     *  前后端分离短信验证码登录
+     * 前后端分离短信验证码登录
      */
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         // 配置所有的Http请求必须认证
         http.authorizeHttpRequests()
-                .requestMatchers("/sms/send/Captcha","sms/login").permitAll()
+                .requestMatchers("/sms/send/Captcha", "sms/login").permitAll()
                 .anyRequest().authenticated();
         // 开启表单登录
         http.formLogin()
                 .successHandler(new JwtTokenAuthenticationSuccessHandler())
                 .failureHandler(new JsonAuthenticationFailureHandler());
         // 开启短信验证码登录（默认关闭）
-        http.apply(smsLogin());
+        http.apply(smsLogin())
+                .successHandler(new JsonAuthenticationSuccessHandler())// 成功处理器
+                .failureHandler(new JsonAuthenticationFailureHandler()) // 失败处理器
+                .phoneParameter("phone") // 手机号参数名称
+                .smsCodeParameter("smsCode"); // 验证码参数名称
         // 禁用写法：http.apply(smsLogin()).disable();
         // 开启Basic认证
         http.httpBasic();
@@ -160,7 +167,6 @@ public class PearlWebSecurityConfig {
         // 使用SpringSession时，不再需要
         return new HttpSessionEventPublisher();
     }*/
-
     @Bean
     PasswordEncoder passwordEncoder() {
         // 当前需升级到哪种算法 （实际开发需要在配置文件中读取）
