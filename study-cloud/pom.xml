@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>study-cloud</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>study-cloud</name>
+    <description>study-cloud</description>
+    <packaging>pom</packaging>
+
+    <properties>
+        <!--base version-->
+        <version>1.0.0</version>
+        <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- plugin version -->
+        <versions-maven-plugin.version>2.2</versions-maven-plugin.version>
+        <!-- dependency version -->
+        <hutool.version>5.8.5</hutool.version>
+        <spring.boot.version>3.0.5</spring.boot.version>
+        <spring.cloud.version>2022.0.1</spring.cloud.version>
+        <spring.cloud.alibaba.version>2022.0.0.0-RC1</spring.cloud.alibaba.version>
+        <mybatis.plus.version>3.5.1</mybatis.plus.version>
+        <springdoc.version>1.6.11</springdoc.version>
+        <knife4j.springdoc.ui.version>3.0.3</knife4j.springdoc.ui.version>
+        <knife4j.version>2.0.9</knife4j.version>
+        <mapstruct.version>1.5.2.Final</mapstruct.version>
+        <mp.version>3.5.0</mp.version>
+        <mp.generator.version>3.5.2</mp.generator.version>
+    </properties>
+
+    <modules>
+        <module>study-cloud-auth-server</module>
+        <module>study-cloud-gateway</module>
+        <module>study-cloud-order</module>
+        <module>study-cloud-user</module>
+    </modules>
+
+    <!--版本依赖管理-->
+    <dependencyManagement>
+        <dependencies>
+            <!--Spring Boot https://github.com/spring-projects/spring-boot-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--Spring Cloud https://github.com/spring-cloud/spring-cloud-release/tags-->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring.cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--Spring Cloud Alibaba https://github.com/alibaba/spring-cloud-alibaba-->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--util-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <!--ORM-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis.plus.version}</version>
+            </dependency>
+            <!--doc-->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-springdoc-ui</artifactId>
+                <version>${knife4j.springdoc.ui.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
