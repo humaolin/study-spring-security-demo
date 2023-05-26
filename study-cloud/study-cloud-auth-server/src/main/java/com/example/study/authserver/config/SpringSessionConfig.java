@@ -14,21 +14,7 @@ import org.springframework.session.web.http.HttpSessionIdResolver;
  * @since 2023/5/24
  */
 @Configuration
-@EnableRedisIndexedHttpSession // 开启支持索引保存会话
 public class SpringSessionConfig {
-    // @EnableRedisIndexedHttpSession 会自动注册 FindByIndexNameSessionRepository
-    // 我们只需要注入进来即可
-    private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
-
-    public SpringSessionConfig(FindByIndexNameSessionRepository<? extends Session> sessionRepository) {
-        this.sessionRepository = sessionRepository;
-    }
-
-    // 使用SpringSessionBackedSessionRegistry，会自动替换默认的 SessionRegistry
-/*    @Bean
-    public SessionRegistry sessionRegistry() {
-        return new SpringSessionBackedSessionRegistry<>(sessionRepository);
-    }*/
 
     @Bean
     public HttpSessionIdResolver sessionIdResolver() {
