@@ -28,7 +28,6 @@ public class SpringSecurityConfig {
      */
     @Bean
     @Order(2)
-    @PreAuthorize()
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
             throws Exception {
         http.authorizeHttpRequests((authorize) -> authorize
