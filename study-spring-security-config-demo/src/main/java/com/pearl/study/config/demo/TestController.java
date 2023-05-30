@@ -1,13 +1,19 @@
 package com.pearl.study.config.demo;
 
+import com.pearl.study.config.demo.i18n.MessageSourceUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
+import java.util.Locale;
 
 /**
  * @author TangDan
@@ -22,6 +28,19 @@ public class TestController {
         return "Hello Security";
     }
 
+    @Autowired
+    MessageSourceUtils messageSourceUtils;
+
+    @Autowired
+    ReloadableResourceBundleMessageSource securityMessageSource;
+
+    @RequestMapping(value = "/ex")
+    public Object ex() {
+        // 获取security 提供的多语言
+        String message = securityMessageSource.getMessage("BindAuthenticator.badCredentials", null, LocaleContextHolder.getLocale());
+        System.out.println(message);
+        return MessageSourceUtils.getMsg("msg");
+    }
     @GetMapping("/user-info")
     public Object userinfo() {
         SecurityContext context = SecurityContextHolder.getContext();// 获取 SecurityContext

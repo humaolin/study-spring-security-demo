@@ -1,12 +1,16 @@
 package com.pearl.study.config.demo;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AnonymousAuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +22,8 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.debug.DebugFilter;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 
 import static com.pearl.study.config.demo.MyCustomDsl.customDsl;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -172,7 +178,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .headers(
-                        headersCustomizer->{
+                        headersCustomizer -> {
+                            // 后置处理器，设置HeaderWriterFilter
                             headersCustomizer.addObjectPostProcessor(new ObjectPostProcessor<HeaderWriterFilter>() {
                                 @Override
                                 public <O extends HeaderWriterFilter> O postProcess(O object) {
@@ -180,7 +187,27 @@ public class SecurityConfig {
                                     return object;
                                 }
                             });
-                            headersCustomizer.addHeaderWriter(new MyHeaderWriter());
+                            // 添加自定义响应头
+                            headersCustomizer.addHeaderWriter(new StaticHeadersWriter("X-Custom-Security-Header", "header-value"));
+                            // 关闭  Cache Control
+                            headersCustomizer.cacheControl(
+                                    HeadersConfigurer.CacheControlConfig::disable
+                            );
+                            // 禁用所有默认的响应头
+                            headersCustomizer.defaultsDisabled();
+                            // HSTS配置
+                            headersCustomizer.httpStrictTransportSecurity(
+                                    hstsCustomizer -> {
+                                        hstsCustomizer.includeSubDomains(true)
+                                                .maxAgeInSeconds(52552552L)
+                                                .preload(true);
+                                    }
+                            );
+                            // 配置 XXssProtectionHeaderWriter
+                            headersCustomizer.xssProtection(
+                                    xss -> xss
+                                            .headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
+                            );
                         }
                 )
                 // 开启表单登录
@@ -206,6 +233,10 @@ public class SecurityConfig {
         // http.apply(customDsl()).disable();
         return http.build();
     }
+
+    @Autowired
+    private MessageSource messageSource;
+
 
     /**
      * 内存存储用户
