@@ -293,6 +293,7 @@ public class SpringAuthServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.PASSWORD)// 密码模式
                 .redirectUri("http://127.0.0.1:8080/callback")
                 .scope("user_info")
+                .scope("org_info")
                 .scope(OidcScopes.OPENID) // OIDC
                 .scope(OidcScopes.PROFILE)
                 .scope(OidcScopes.EMAIL)

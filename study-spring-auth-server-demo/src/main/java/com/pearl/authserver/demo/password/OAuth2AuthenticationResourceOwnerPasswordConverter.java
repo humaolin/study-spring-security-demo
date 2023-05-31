@@ -1,5 +1,6 @@
 package com.pearl.authserver.demo.password;
 
+import cn.hutool.core.util.StrUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,7 +38,7 @@ public class OAuth2AuthenticationResourceOwnerPasswordConverter implements Authe
         if (!StringUtils.hasText(scope) || parameters.get(OAuth2ParameterNames.SCOPE).size() != 1) {
             OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.INVALID_REQUEST, OAuth2ParameterNames.SCOPE, OAuth2EndpointUtils.ACCESS_TOKEN_REQUEST_ERROR_URI);
         }
-        Set<String> scopes = new HashSet<>(parameters.get(OAuth2ParameterNames.SCOPE));
+        Set<String> scopes = new HashSet<>(StrUtil.split(scope, " "));
         // 4. 用户名username必填
         String username = parameters.getFirst(OAuth2ParameterNames.USERNAME);
         if (!StringUtils.hasText(username) ||
