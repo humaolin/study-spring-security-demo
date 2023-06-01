@@ -1,6 +1,7 @@
 package com.pearl.authorize.demo.config;
 
 
+import com.pearl.authorize.demo.dynamic.CustomAuthorizationManager;
 import com.pearl.authorize.demo.exception.JsonAccessDeniedHandler;
 import com.pearl.authorize.demo.exception.JsonAuthenticationEntryPoint;
 import com.pearl.authorize.demo.exception.JsonAuthenticationFailureHandler;
@@ -73,7 +74,7 @@ public class PearlWebSecurityConfig {
         http.authorizeHttpRequests()
                 // /user/list请求，必须拥有 ADMIN角色
                 //.requestMatchers("/user/list").hasRole("ADMIN")
-                .anyRequest().authenticated();
+                .anyRequest().access(new CustomAuthorizationManager());
         // 开启表单登录
         http.formLogin().failureHandler(new JsonAuthenticationFailureHandler());
         // 开启Basic认证
