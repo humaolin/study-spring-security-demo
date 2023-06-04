@@ -26,6 +26,7 @@ public class MessageSourceUtils {
     }
 
     public static String getMsg(String code) {
+        // TODO 使用MessageSourceAccessor、SpringSecurityMessageSource
         // LocaleContextHolder 中封装了Locale 对象；
         Locale locale = LocaleContextHolder.getLocale();
         // MessageSource中获取国际化信息
