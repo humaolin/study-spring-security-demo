@@ -30,11 +30,14 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_ADMIN') and hasRole('ROLE_USER')")
     @GetMapping("/save")
     // Inject language or reference
+    //
+    //
     String save(String name) {
         return "save";
     }
 
     @GetMapping("/del")
+    //
     @PreAuthorize("hasUser('sysadmin','admin')")
     String del() {
         return "del";

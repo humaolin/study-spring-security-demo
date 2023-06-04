@@ -1,9 +1,13 @@
 package com.pearl.authorize.demo.config;
 
 
+import com.pearl.authorize.demo.dynamic.CustomAuthorizationManager;
+import com.pearl.authorize.demo.dynamic.DbUrlSecurityMetadataSource;
+import com.pearl.authorize.demo.dynamic.UrlSecurityMetadataSource;
 import com.pearl.authorize.demo.exception.JsonAccessDeniedHandler;
 import com.pearl.authorize.demo.exception.JsonAuthenticationEntryPoint;
 import com.pearl.authorize.demo.exception.JsonAuthenticationFailureHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -19,7 +23,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity(debug = true)
-@EnableMethodSecurity(prePostEnabled = true,securedEnabled = true,jsr250Enabled = true)
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class PearlWebSecurityConfig {
 
     /**
@@ -64,6 +68,9 @@ public class PearlWebSecurityConfig {
         return http.build();
     }*/
 
+    @Autowired
+    CustomAuthorizationManager customAuthorizationManager;
+
     /**
      * 基于方法AOP
      */
@@ -73,7 +80,7 @@ public class PearlWebSecurityConfig {
         http.authorizeHttpRequests()
                 // /user/list请求，必须拥有 ADMIN角色
                 //.requestMatchers("/user/list").hasRole("ADMIN")
-                .anyRequest().authenticated();
+                .anyRequest().access(customAuthorizationManager);
         // 开启表单登录
         http.formLogin().failureHandler(new JsonAuthenticationFailureHandler());
         // 开启Basic认证
@@ -83,11 +90,12 @@ public class PearlWebSecurityConfig {
         // 异常配置
         http.exceptionHandling()
                 .accessDeniedHandler(new JsonAccessDeniedHandler())
-                        .authenticationEntryPoint(new JsonAuthenticationEntryPoint());
+                .authenticationEntryPoint(new JsonAuthenticationEntryPoint());
         // CSRF配置
 /*        http.csrf()//.ignoringRequestMatchers("/login") // 不需要进行防护的接口
                 .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 .csrfTokenRepository(new CookieCsrfTokenRepository()); // 设置令牌的存储方式*/
         return http.build();
     }
+
 }

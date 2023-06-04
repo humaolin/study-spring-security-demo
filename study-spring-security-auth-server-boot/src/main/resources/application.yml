@@ -1,0 +1,23 @@
+spring:
+  security:
+    oauth2:
+      authorizationserver:
+        # 客户端配置
+        client:
+          my-client-1:
+            registration:
+              client-id: "client"
+              client-secret: "{noop}secret"
+              client-authentication-methods:
+                - "client_secret_basic"
+              authorization-grant-types:
+                - "authorization_code"
+              redirect-uris:
+                - "http://127.0.0.1:8080/callback"
+              scopes:
+                - "openid"
+                - "user_info"
+    user:
+      password: 123456
+server:
+  port: 8696

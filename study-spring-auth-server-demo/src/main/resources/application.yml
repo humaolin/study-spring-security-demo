@@ -1,3 +1,4 @@
+
 logging:
   level:
     org.springframework.security.oauth2.server.authorization: debug
@@ -18,3 +19,5 @@ spring:
       produce-partial-output-while-processing: true
     # 是否开启缓存，开发环境关闭
     cache: true
+server:
+  port: 8181
