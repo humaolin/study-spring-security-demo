@@ -1,4 +1,4 @@
-package com.pearl.study.justauth.service;
+package com.pearl.study.justauthsecurity.service;
 
 import me.zhyd.oauth.model.AuthUser;
 

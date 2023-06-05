@@ -1,5 +1,5 @@
 server:
-  port: 9091
+  port: 9090
   servlet:
     context-path: /demo
 spring:
@@ -21,67 +21,12 @@ spring:
          # 连接池中的最小空闲连接 默认 0
          min-idle: 0
      password: 123456
-  # mysql
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/pearl_demo?useSSL=false&useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
-    username: root
-    password: root
-
   # session 简单配置
   session:
     # session 存储模式设置, 要导入相应的 spring-session 类的依赖, 默认为 none, 分布式应用把 session 放入 redis 等中间件
     store-type: none
     # session 过期时间
     timeout: PT300s
-
-# ums core
-ums:
-  # ================ 第三方授权登录相关配置 ================
-  oauth:
-    enable-user-connection-and-auth-token-table: true
-    # 是否支持第三方授权登录功能, 默认: true
-    enabled: true
-    # 抑制反射警告, 支持 JDK11, 默认: false , 在确认 WARNING: An illegal reflective access operation has occurred 安全后, 可以打开此设置, 可以抑制反射警告.
-    suppress-reflect-warning: true
-    # 第三方服务商: providerId, 支持所有 JustAuth 支持的第三方授权登录, 目前有 32 家第三方授权登录
-    github:
-      # 根据是否有设置 clientId 来动态加载相应 JustAuth 的 AuthXxxRequest
-      client-id: 4d4ee00e82f669f2ea8d
-      client-secret: 953ddbe871a08d6924053531e89ecc01d87195a8
-    gitee:
-      client-id: dcc38c801ee88f43cfc1d5c52ec579751c12610c37b87428331bd6694056648e
-      client-secret: e60a110a2f6e7c930c2d416f802bec6061e19bfa0ceb0df9f6b182b05d8f5a58
-    # 第三方登录授权登录 url 前缀, 不包含 ServletContextPath，默认为 /auth2/authorization.
-    auth-login-url-prefix: /auth2/authorization
-    # 第三方登录回调处理 url 前缀 ，也就是 RedirectUrl 的前缀, 不包含 ServletContextPath，默认为 /auth2/login.
-    redirect-url-prefix: /auth2/login
-    # 第三方登录回调的域名, 例如：http://localhost:9090 默认为 "http://127.0.0.1"，
-    # redirectUrl 直接由 {domain}/{servletContextPath}/{redirectUrlPrefix}/{providerId}(ums.oauth.[qq/gitee/weibo])组成
-    domain: http://localhost:9090
-    # 第三方授权登录成功后的默认权限, 多个权限用逗号分开, 默认为: "ROLE_USER"
-    default-authorities: ROLE_USER
-
-    # 用于 JustAuth 的代理(HttpClient)设置
-    proxy:
-      # 用于国内代理(HttpClient)超时, 默认 PT3S
-      timeout: PT3S
-      # 用于国外网站代理(HttpClient)超时, 默认 PT15S
-      foreign-timeout: PT150S
-
-      gitee:
-          client-name: 码云登录
-          # 申请的客户端ID
-          client-id:
-          # 申请的客户端密码
-          client-secret:
-          # 授权模式，固定为 authorization_code，其他值可以参考AuthorizationGrantType
-          authorization-grant-type: authorization_code
-          # 回调地址，接收授权码
-          redirect-uri: /login/oauth2/code/gitee
-          # 权限范围，可配置项在码云应用信息中查看
-          scope:
-            - user_info # 个人用户信息
 #debug: true
 justauth:
   cache:

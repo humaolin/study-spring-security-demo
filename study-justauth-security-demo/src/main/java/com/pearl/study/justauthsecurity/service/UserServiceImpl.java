@@ -1,13 +1,13 @@
-package com.pearl.study.justauth.service;
+package com.pearl.study.justauthsecurity.service;
 
 import com.alibaba.fastjson.JSONObject;
-import jakarta.annotation.PostConstruct;
 import me.zhyd.oauth.model.AuthUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
