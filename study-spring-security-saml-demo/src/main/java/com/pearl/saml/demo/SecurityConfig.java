@@ -1,6 +1,7 @@
 package com.pearl.saml.demo;
 
 import org.opensaml.security.x509.X509Support;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,9 +11,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.saml2.core.Saml2X509Credential;
+import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
+import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
+import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.io.File;
@@ -24,8 +29,18 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 public class SecurityConfig {
 
+    @Autowired
+    RelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
+
     @Bean
     SecurityFilterChain samlSecurityFilterChain(HttpSecurity http) throws Exception {
+        DefaultRelyingPartyRegistrationResolver relyingPartyRegistrationResolver =
+                new DefaultRelyingPartyRegistrationResolver(this.relyingPartyRegistrationRepository);
+        Saml2MetadataFilter filter = new Saml2MetadataFilter(
+                relyingPartyRegistrationResolver,
+                new OpenSamlMetadataResolver());
+        http.addFilterBefore(filter, Saml2WebSsoAuthenticationFilter.class);
+
         http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
         http.saml2Login(withDefaults());
         http.saml2Logout(withDefaults());

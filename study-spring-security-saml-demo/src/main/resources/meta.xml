@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<md:EntityDescriptor entityID="GRG-AUTH-CENTER" xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata">
+    <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:KeyDescriptor use="signing">
+            <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                <ds:X509Data>
+                    <ds:X509Certificate>MIIDPjCCAiagAwIBAgIGAYVo6VQAMA0GCSqGSIb3DQEBCwUAMGAxCzAJBgNVBAYTAkNOMRIwEAYD
+VQQIDAlHdWFuZ0RvbmcxEjAQBgNVBAcMCUd1YW5nWmhvdTETMBEGA1UECgwKR3JnYmFua2luZzEJ
+MAcGA1UECwwAMQkwBwYDVQQDDAAwHhcNMjIxMjMxMTYwMDAwWhcNMzIxMjMxMTYwMDAwWjBgMQsw
+CQYDVQQGEwJDTjESMBAGA1UECAwJR3VhbmdEb25nMRIwEAYDVQQHDAlHdWFuZ1pob3UxEzARBgNV
+BAoMCkdyZ2JhbmtpbmcxCTAHBgNVBAsMADEJMAcGA1UEAwwAMIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEAmNKuVKq4IVSL8zydVX0MXh2/NCXVCL33vPFGsGpoEI46ZDbMhnxQgjEGAZsO
+ZcV/MaRlytUijtm4gT50Zxm1pm0tLdsuOV3b6MKXSe41iZTN6HmiVtWBvy4dgK4Pz3sAs8LN97kP
+BcA8Am2h/7O3zNV3o2/PUMTKq1eG3XfLK+qoQttpfAQIl2EAqXCo/puKHJ/M1AAVd/0uw7Gxoxht
+kDXgZg+KA85ebk9M/hqt4N27WBs9RgccK2KpjAMiKn1YzhmEoogPGJgoYLU2U0cuUvCbFsQA0mHJ
+MXudJvM1+vb/uyeiYZMlWMXNvrS3SBfqNqy3nMoVpmHbuKjeboGq1QIDAQABMA0GCSqGSIb3DQEB
+CwUAA4IBAQA77jiIaDvdHOztUPrsX+8JT3oHA1o9MBXFg2WE6c0N5DF7o3o3lDsL402w8F1mzI7C
+Jle7VtLMTw8R7/9e5P0dzKBe29YlV4XFPbevHdqeQ+ZjhOFuoHlFCziLJTIrhI6QdIBxN3wPkZH/
+G9R+oJSNFtF+1dP/axc9a2Gc2bo+iAH8A3hfw3/2xDWMYMavqzYcqPBOA1TBtIVR6gWYzTe1DgwK
+d8xyMaIlYu22AtJjwai1Qe6t6vNSfgC2H1NX3p/mXhdRrTjyYAJhiQfEArIH/9RSzWM5S20s+Tju
+HU1xKH7x3qpuDAyAXYxME+PjVzr4GdYf3yk7TIlkvvQ5K9hQ</ds:X509Certificate>
+                </ds:X509Data>
+            </ds:KeyInfo>
+        </md:KeyDescriptor>
+        <md:Organization>
+            <md:OrganizationName xml:lang="">grg</md:OrganizationName>
+            <md:OrganizationDisplayName xml:lang="">grg</md:OrganizationDisplayName>
+            <md:OrganizationURL xml:lang="">https://xxx.com</md:OrganizationURL>
+        </md:Organization>
+        <md:ContactPerson contactType="technical">
+            <md:Company>grg</md:Company>
+            <md:GivenName>grg</md:GivenName>
+            <md:SurName>grg</md:SurName>
+            <md:EmailAddress>xxx@xx.com</md:EmailAddress>
+            <md:TelephoneNumber>xxx</md:TelephoneNumber>
+        </md:ContactPerson>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:entity</md:NameIDFormat>
+        <md:SingleSignOnService
+            Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign" Location="https://xxx.com"/>
+    </md:IDPSSODescriptor>
+</md:EntityDescriptor>

@@ -14,6 +14,7 @@ spring:
               # 证书文件位置
                 certificate-location: classpath:credentials/rp-certificate.crt
             # 断言方元数据访问地址
+            # http://sso.maxkey.top/maxkey/saml/metadata/361f7df0-069f-435b-89f2-528d6f59bd8e
             assertingparty.metadata-uri: https://dev-05937739.okta.com/app/exk46xofd8NZvFCpS5d7/sso/saml/metadata
             # 登出配置
             # http://localhost:8080/saml2/service-provider-metadata/one
