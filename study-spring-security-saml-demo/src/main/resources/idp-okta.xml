@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--IDP元数据描述-->
+<!--entityID：唯一标识-->
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
 	entityID="http://www.okta.com/exkd69wmuFN7BRX244x6">
+	<!--SSO相关-->
 	<md:IDPSSODescriptor WantAuthnRequestsSigned="true"
 		protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+		<!--秘钥描述-->
 		<md:KeyDescriptor use="signing">
 			<ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
 				<ds:X509Data>
@@ -28,18 +32,21 @@
 				</ds:X509Data>
 			</ds:KeyInfo>
 		</md:KeyDescriptor>
+		<!--退出登录-->
 		<md:SingleLogoutService
 			Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 			Location="https://dev-812782.okta.com/app/keyoudev812782_samlidp_1/exkd69wmuFN7BRX244x6/slo/saml" />
 		<md:SingleLogoutService
 			Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 			Location="https://dev-812782.okta.com/app/keyoudev812782_samlidp_1/exkd69wmuFN7BRX244x6/slo/saml" />
+		<!--用户主体唯一标识-->
 		<md:NameIDFormat>
 			urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
 		</md:NameIDFormat>
 		<md:NameIDFormat>
 			urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
 		</md:NameIDFormat>
+		<!--单点登录-->
 		<md:SingleSignOnService
 			Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 			Location="https://dev-812782.okta.com/app/keyoudev812782_samlidp_1/exkd69wmuFN7BRX244x6/sso/saml" />

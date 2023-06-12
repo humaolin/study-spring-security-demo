@@ -1,23 +1,24 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   security:
     saml2:
       relyingparty:
         registration:
           # 依赖方的实体ID，任意的值，你可以选择它来区分不同的注册
-          one:
+          # http://localhost:8081/saml2/authenticate/keycloak
+          keycloak:
+            entity-id:
             # 签名证书，用于验证SAML响应
             signing.credentials:
               # 私钥文件位置
               - private-key-location: classpath:credentials/rp-private.key
-              # 证书文件位置
+                # 证书文件位置
                 certificate-location: classpath:credentials/rp-certificate.crt
             # 断言方元数据访问地址
-            # http://sso.maxkey.top/maxkey/saml/metadata/361f7df0-069f-435b-89f2-528d6f59bd8e
-            assertingparty.metadata-uri: https://dev-05937739.okta.com/app/exk46xofd8NZvFCpS5d7/sso/saml/metadata
+            assertingparty.metadata-uri: http://localhost:8080/realms/myrealm/protocol/saml/descriptor
             # 登出配置
-            # http://localhost:8080/saml2/service-provider-metadata/one
+            # SP元数据：http://localhost:8081/saml2/service-provider-metadata/keycloak
             singlelogout:
               binding: POST
               url: "{baseUrl}/logout/saml2/slo"

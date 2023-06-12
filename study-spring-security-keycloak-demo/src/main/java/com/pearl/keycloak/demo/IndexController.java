@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pearl.saml.demo;
+package com.pearl.keycloak.demo;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
