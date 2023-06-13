@@ -1,0 +1,25 @@
+server:
+  port: 8033
+spring:
+  security:
+    saml2:
+      relyingparty:
+        registration:
+          # ??????ID????????????????????
+          # http://localhost:8033/saml2/authenticate/maxkey
+          maxkey:
+            # ?????????SAML??
+            # assertingparty.singlesignon.signRequest: true
+            signing.credentials:
+              # ??????
+              - private-key-location: classpath:credentials/rp-private.key
+                # ??????
+                certificate-location: classpath:credentials/rp-certificate.crt
+            # ??????????
+            assertingparty.metadata-uri: http://sso.maxkey.top/sign/metadata/saml20/mxk_metadata_864487223259561984.xml
+            # ????
+            # SP????http://localhost:8033/saml2/service-provider-metadata/maxkey
+            singlelogout:
+              binding: POST
+              url: "{baseUrl}/logout/saml2/slo"
+

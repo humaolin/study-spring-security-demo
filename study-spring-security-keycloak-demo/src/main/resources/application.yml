@@ -8,12 +8,12 @@ spring:
           # 依赖方的实体ID，任意的值，你可以选择它来区分不同的注册
           # http://localhost:8081/saml2/authenticate/keycloak
           keycloak:
-            entity-id:
-            # 签名证书，用于验证SAML响应
+            # entity-id: {baseUrl}/saml2/service-provider-metadata/{registrationId}
+            # 用于构建签名和解密的 Saml2X509Credential
             signing.credentials:
-              # 私钥文件位置
+              # 私钥（保存在客户端，进行签名）
               - private-key-location: classpath:credentials/rp-private.key
-                # 证书文件位置
+                # 公钥证书（给IDP，进行验签）
                 certificate-location: classpath:credentials/rp-certificate.crt
             # 断言方元数据访问地址
             assertingparty.metadata-uri: http://localhost:8080/realms/myrealm/protocol/saml/descriptor
@@ -22,3 +22,4 @@ spring:
             singlelogout:
               binding: POST
               url: "{baseUrl}/logout/saml2/slo"
+

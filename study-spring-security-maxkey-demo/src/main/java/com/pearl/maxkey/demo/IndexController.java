@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package com.pearl.keycloak.demo;
+package com.pearl.maxkey.demo;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 public class IndexController {
 
 	@GetMapping("/")
-	public Object index(@AuthenticationPrincipal Saml2AuthenticatedPrincipal principal) {
-		return principal;
+	public String index(Model model, @AuthenticationPrincipal Saml2AuthenticatedPrincipal principal) {
+		String emailAddress = principal.getFirstAttribute("email");
+		model.addAttribute("emailAddress", emailAddress);
+		model.addAttribute("userAttributes", principal.getAttributes());
+		return "index";
 	}
 }
