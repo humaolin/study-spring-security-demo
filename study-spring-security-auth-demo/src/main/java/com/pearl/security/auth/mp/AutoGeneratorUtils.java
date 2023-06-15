@@ -15,8 +15,6 @@ import java.util.Collections;
 public class AutoGeneratorUtils {
 
     public static void main(String[] args) {
-        String encode = new BCryptPasswordEncoder().encode("123456");
-        System.out.println(encode);
         FastAutoGenerator.create("jdbc:mysql://127.0.0.1:3306/study", "root", "123456")
                 .globalConfig(builder -> {
                     builder.author("pearl") // 设置作者
