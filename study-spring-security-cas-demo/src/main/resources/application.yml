@@ -1,0 +1,12 @@
+cas:
+  base:
+    url: http://192.168.56.101:8080/cas
+  login:
+    url: ${cas.base.url}/login
+  logout:
+    url: ${cas.base.url}/logout
+server:
+  port: 8028
+# changeit
+# 用户名：casuser
+#密码：Mellon
