@@ -116,7 +116,6 @@ public final class SmsLoginConfigurer<H extends HttpSecurityBuilder<H>> extends 
 
     public void init(H http) throws Exception {
         super.init(http);
-        this.initDefaultLoginFilter(http);
     }
 
     protected RequestMatcher createLoginProcessingUrlMatcher(String loginProcessingUrl) {
@@ -129,18 +128,6 @@ public final class SmsLoginConfigurer<H extends HttpSecurityBuilder<H>> extends 
 
     private String getSmsCodeParameter() {
         return (this.getAuthenticationFilter()).getSmsCodeParameter();
-    }
-
-    private void initDefaultLoginFilter(H http) {
-        DefaultLoginPageGeneratingFilter loginPageGeneratingFilter = http.getSharedObject(DefaultLoginPageGeneratingFilter.class);
-        if (loginPageGeneratingFilter != null && !this.isCustomLoginPage()) {
-            loginPageGeneratingFilter.setFormLoginEnabled(true);
-            loginPageGeneratingFilter.setUsernameParameter(this.getPhoneParameter());
-            loginPageGeneratingFilter.setPasswordParameter(this.getSmsCodeParameter());
-            loginPageGeneratingFilter.setLoginPageUrl(this.getLoginPage());
-            loginPageGeneratingFilter.setFailureUrl(this.getFailureUrl());
-            loginPageGeneratingFilter.setAuthenticationUrl(this.getLoginProcessingUrl());
-        }
     }
 
     public static SmsLoginConfigurer<HttpSecurity> smsLogin() {
