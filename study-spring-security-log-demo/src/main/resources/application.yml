@@ -1,0 +1,25 @@
+server:
+  port: 10002
+spring:
+  security:
+    user:
+      name: test
+      password: 123456
+  # DataSource Config
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/study?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true
+    username: root
+    password: 123456
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: 123456
+      database: 0
+  session:
+    redis:
+      # ????
+      namespace: spring:security
+

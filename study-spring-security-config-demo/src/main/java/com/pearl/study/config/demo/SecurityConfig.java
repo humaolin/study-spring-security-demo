@@ -180,9 +180,6 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager() throws Exception{
         AuthenticationManager authenticationManager = authenticationConfiguration.getAuthenticationManager();
-
-
-        authenticationConfiguration.setObjectPostProcessor();
         return authenticationManager;
     }
 

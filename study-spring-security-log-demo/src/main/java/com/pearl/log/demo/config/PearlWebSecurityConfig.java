@@ -1,26 +1,12 @@
-package com.pearl.security.auth.security;
+package com.pearl.log.demo.config;
 
 import cn.hutool.core.lang.UUID;
-
-import com.pearl.security.auth.filter.CaptchaVerifyFilter;
-import com.pearl.security.auth.handler.JsonAuthenticationFailureHandler;
-import com.pearl.security.auth.handler.JsonAuthenticationSuccessHandler;
-import com.pearl.security.auth.handler.JsonLogoutSuccessHandler;
-import com.pearl.security.auth.handler.MyLogoutHandler;
-import com.pearl.security.auth.token.JwtTokenAuthenticationSuccessHandler;
-import com.pearl.security.auth.token.JwtTokenSecurityContextHolderFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
-import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,21 +14,12 @@ import org.springframework.security.crypto.password.*;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
-import org.springframework.security.web.context.*;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.pearl.security.auth.sms.SmsLoginConfigurer.smsLogin;
-
 
 @Configuration
 @EnableWebSecurity(debug = false)
