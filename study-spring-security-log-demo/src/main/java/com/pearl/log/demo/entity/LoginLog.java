@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author pearl
- * @since 2023-06-26
+ * @since 2023-06-27
  */
 @TableName("login_log")
 public class LoginLog implements Serializable {
@@ -31,14 +31,9 @@ public class LoginLog implements Serializable {
     private Long userId;
 
     /**
-     * 昵称
-     */
-    private String nickName;
-
-    /**
      * 登录方式
      */
-    private Integer way;
+    private String way;
 
     /**
      * 登录时间
@@ -46,22 +41,12 @@ public class LoginLog implements Serializable {
     private LocalDateTime time;
 
     /**
-     * 用户代理
-     */
-    private String userAgent;
-
-    /**
-     * 操作系统
-     */
-    private String os;
-
-    /**
      * 登录IP地址
      */
     private String ip;
 
     /**
-     * 地理位置
+     * IP归属地
      */
     private String location;
 
@@ -74,6 +59,36 @@ public class LoginLog implements Serializable {
      * 备注
      */
     private String remark;
+
+    /**
+     * 操作系统
+     */
+    private String os;
+
+    /**
+     * 是否移动终端（1是0否）
+     */
+    private Integer isMobile;
+
+    /**
+     * 浏览器及版本
+     */
+    private String browser;
+
+    /**
+     * 平台类型（Windows、iPhone、Android等）
+     */
+    private String platform;
+
+    /**
+     * 提示信息
+     */
+    private String msg;
+
+    /**
+     * 账号（可能是用户名、手机号、邮箱、第三方平台账号等）
+     */
+    private String account;
 
     public Long getId() {
         return id;
@@ -89,18 +104,11 @@ public class LoginLog implements Serializable {
     public void setUserId(Long userId) {
         this.userId = userId;
     }
-    public String getNickName() {
-        return nickName;
-    }
-
-    public void setNickName(String nickName) {
-        this.nickName = nickName;
-    }
-    public Integer getWay() {
+    public String getWay() {
         return way;
     }
 
-    public void setWay(Integer way) {
+    public void setWay(String way) {
         this.way = way;
     }
     public LocalDateTime getTime() {
@@ -109,20 +117,6 @@ public class LoginLog implements Serializable {
 
     public void setTime(LocalDateTime time) {
         this.time = time;
-    }
-    public String getUserAgent() {
-        return userAgent;
-    }
-
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
-    }
-    public String getOs() {
-        return os;
-    }
-
-    public void setOs(String os) {
-        this.os = os;
     }
     public String getIp() {
         return ip;
@@ -152,21 +146,66 @@ public class LoginLog implements Serializable {
     public void setRemark(String remark) {
         this.remark = remark;
     }
+    public String getOs() {
+        return os;
+    }
+
+    public void setOs(String os) {
+        this.os = os;
+    }
+    public Integer getIsMobile() {
+        return isMobile;
+    }
+
+    public void setIsMobile(Integer isMobile) {
+        this.isMobile = isMobile;
+    }
+    public String getBrowser() {
+        return browser;
+    }
+
+    public void setBrowser(String browser) {
+        this.browser = browser;
+    }
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
 
     @Override
     public String toString() {
         return "LoginLog{" +
             "id=" + id +
             ", userId=" + userId +
-            ", nickName=" + nickName +
             ", way=" + way +
             ", time=" + time +
-            ", userAgent=" + userAgent +
-            ", os=" + os +
             ", ip=" + ip +
             ", location=" + location +
             ", status=" + status +
             ", remark=" + remark +
+            ", os=" + os +
+            ", isMobile=" + isMobile +
+            ", browser=" + browser +
+            ", platform=" + platform +
+            ", msg=" + msg +
+            ", account=" + account +
         "}";
     }
 }
