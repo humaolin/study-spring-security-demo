@@ -9,6 +9,7 @@ import cn.hutool.http.useragent.UserAgentUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.pearl.log.demo.entity.LoginLog;
 import com.pearl.log.demo.entity.PearlUserDetails;
+import com.pearl.log.demo.entity.RequestDTO;
 import com.pearl.log.demo.entity.User;
 import com.pearl.log.demo.mapper.LoginLogMapper;
 import com.pearl.log.demo.service.ILoginLogService;
@@ -40,66 +41,74 @@ public class LoginLogServiceImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
     @Autowired
     IUserService userService;
 
-    //@Async // 异步执行
+    @Async // 异步执行
     @Override
-    public void save(LoginLog log, HttpServletRequest request){
-        try {
-            TimeUnit.SECONDS.sleep(3);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+    public void save(RequestDTO requestDTO, boolean isSuccess, String msg) {
+        LoginLog loginLog = new LoginLog();
+        // 1. UA 信息
+        String userAgentHeader = requestDTO.getUserAgent();
+        if (StrUtil.isNotEmpty(userAgentHeader)) {
+            UserAgent userAgent = UserAgentUtil.parse(userAgentHeader);
+            loginLog.setIsMobile(userAgent.isMobile() ? 1 : 0);
+            loginLog.setBrowser(userAgent.getBrowser().getName());
+            loginLog.setPlatform(userAgent.getPlatform().getName());
+            loginLog.setOs(userAgent.getOs().getName());
         }
-        String requestUri = request.getRequestURI();
-        // 登录时间
-        log.setTime(LocalDateTime.now());
-        // UA 信息
-        String header = request.getHeader(Header.USER_AGENT.getValue());
-        if (StrUtil.isNotEmpty(header)) {
-            UserAgent userAgent = UserAgentUtil.parse(header);
-            log.setIsMobile(userAgent.isMobile() ? 1 : 0);
-            log.setBrowser(userAgent.getBrowser().getName());
-            log.setPlatform(userAgent.getPlatform().getName());
-            log.setOs(userAgent.getOs().getName());
-        }
-        // IP地址、归属地
-        String ipAddress = IpUtils.getClientIp(request);
-        log.setIp(ipAddress);
-        // IP 归属地
+        // 2. IP地址、IP 归属地
+        String ipAddress = requestDTO.getIpAddress();
+        loginLog.setIp(ipAddress);
         String realAddressByIP = AddressUtils.getRealAddressByIP(ipAddress);
-        log.setLocation(realAddressByIP);
-        // 登录方式：通过请求路径判断
-        Map<String, String> paramMap = JakartaServletUtil.getParamMap(request);
+        loginLog.setLocation(realAddressByIP);
+        // 3. 登录方式：通过请求路径判断
+        Map<String, String> paramMap = requestDTO.getParamMap();
+        String requestUri = requestDTO.getRequestUri();
         if (StrUtil.equals(requestUri, "/login")) {
-            log.setWay("账号密码");
+            loginLog.setWay("账号密码");
             // 请求参数中的用户名账号
             String username = paramMap.get("username");
             // 查询用户ID（平台用户登录后，可以查看自己的登录日志）
-            if (StrUtil.isNotEmpty(username)){
-                log.setAccount(username);
+            if (StrUtil.isNotEmpty(username)) {
+                loginLog.setAccount(username);
                 User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getUserName, username));
-                if (ObjectUtil.isNotNull(user)){
-                    log.setUserId(user.getUserId());
+                if (ObjectUtil.isNotNull(user)) {
+                    loginLog.setUserId(user.getUserId());
                 }
             }
         } else if (StrUtil.equals(requestUri, "/login/sms")) {
-            log.setWay("手机号");
+            loginLog.setWay("手机号");
             String phone = paramMap.get("phone");
             // 查询用户ID（平台用户登录后，可以查看自己的登录日志）
-            if (StrUtil.isNotEmpty(phone)){
-                log.setAccount(phone);
+            if (StrUtil.isNotEmpty(phone)) {
+                loginLog.setAccount(phone);
                 User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
-                if (ObjectUtil.isNotNull(user)){
-                    log.setUserId(user.getUserId());
+                if (ObjectUtil.isNotNull(user)) {
+                    loginLog.setUserId(user.getUserId());
                 }
             }
         } else if (StrUtil.startWith(requestUri, "/login/oauth2/code")) {
             // 第三方平台登录（第三方可能在当前平台没有用户ID）
-            log.setWay("第三方平台");
-            String s = StrUtil.subAfter(requestUri, "/", true);// 截取第三方ID
-            log.setWay(s);
-        } else {
-            log.setWay("程序未知的认证方式");
+            loginLog.setWay(StrUtil.subAfter(requestUri, "/", true));// 截取第三方ID
         }
-        // 直接保存到数据库 OR 调用日志服务保存 OR 发送到MQ处理
-        save(log);
+        // 4. 其他
+        loginLog.setTime(LocalDateTime.now());// 登录时间
+        loginLog.setMsg(msg);// 提示消息
+        loginLog.setStatus(isSuccess ? 1 : 0);
+        // 5. 直接保存到数据库 OR 调用日志服务保存 OR 发送到MQ处理
+        save(loginLog);
+    }
+
+    @Override
+    public RequestDTO getRequestDTO(HttpServletRequest request) {
+        // 获取HttpServletRequest中，登录日志需要的相关属性，方便异步执行
+        String requestUri = request.getRequestURI();
+        String userAgent = request.getHeader(Header.USER_AGENT.getValue());
+        String ipAddress = IpUtils.getClientIp(request);
+        Map<String, String> paramMap = JakartaServletUtil.getParamMap(request);
+        RequestDTO requestDTO = new RequestDTO();
+        requestDTO.setRequestUri(requestUri);
+        requestDTO.setIpAddress(ipAddress);
+        requestDTO.setUserAgent(userAgent);
+        requestDTO.setParamMap(paramMap);
+        return requestDTO;
     }
 }

@@ -1,10 +1,13 @@
 package com.pearl.log.demo.handler;
 
 import cn.hutool.extra.servlet.JakartaServletUtil;
+import cn.hutool.http.Header;
 import cn.hutool.json.JSONUtil;
 import com.pearl.log.demo.entity.LoginLog;
 import com.pearl.log.demo.entity.PearlUserDetails;
+import com.pearl.log.demo.entity.RequestDTO;
 import com.pearl.log.demo.service.ILoginLogService;
+import com.pearl.log.demo.util.IpUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +35,7 @@ import java.util.Map;
 public class JsonAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     @Autowired
     ILoginLogService loginLogService;
+
     /**
      * 登录成功后直接返回 JSON
      *
@@ -42,11 +46,8 @@ public class JsonAuthenticationSuccessHandler implements AuthenticationSuccessHa
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         // 1. 记录登录成功日志
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//设置子线程共享
-        LoginLog log = new LoginLog();
-        log.setStatus(1);// 登录成功
-        loginLogService.save(log,request);
+        RequestDTO requestDTO = loginLogService.getRequestDTO(request);
+        loginLogService.save(requestDTO, true, "登录成功");
         // 2. 响应
         response.setContentType("application/json;charset=utf-8"); // 返回JSON
         response.setStatus(HttpStatus.OK.value());  // 状态码 200

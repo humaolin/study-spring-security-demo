@@ -3,10 +3,12 @@ package com.pearl.event.demo;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authorization.AuthorizationEventPublisher;
 import org.springframework.security.authorization.SpringAuthorizationEventPublisher;
+import org.springframework.security.concurrent.DelegatingSecurityContextExecutor;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -17,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 
 import java.util.Arrays;
+import java.util.concurrent.Executor;
 import java.util.regex.Pattern;
 
 @Configuration
@@ -99,5 +102,11 @@ public class SecurityConfig {
                 .roles("USER")
                 .build();
         return new InMemoryUserDetailsManager(userDetails);
+    }
+
+    @Bean
+    Executor executor() {
+        SimpleAsyncTaskExecutor delegateExecutor = new SimpleAsyncTaskExecutor();
+        return new DelegatingSecurityContextExecutor(delegateExecutor);
     }
 }

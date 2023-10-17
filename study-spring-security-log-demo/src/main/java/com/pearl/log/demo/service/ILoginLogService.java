@@ -2,6 +2,7 @@ package com.pearl.log.demo.service;
 
 import com.pearl.log.demo.entity.LoginLog;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.pearl.log.demo.entity.RequestDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 
@@ -17,6 +18,7 @@ import java.util.Map;
  */
 public interface ILoginLogService extends IService<LoginLog> {
 
-    void save(LoginLog log, HttpServletRequest request);
+    void save(RequestDTO requestDTO, boolean isSuccess,String msg);
 
+    RequestDTO getRequestDTO(HttpServletRequest request);
 }

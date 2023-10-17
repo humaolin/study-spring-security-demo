@@ -2,6 +2,7 @@ package com.pearl.log.demo.handler;
 
 import cn.hutool.json.JSONUtil;
 import com.pearl.log.demo.entity.LoginLog;
+import com.pearl.log.demo.entity.RequestDTO;
 import com.pearl.log.demo.service.ILoginLogService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,12 +33,8 @@ public class JsonAuthenticationFailureHandler implements AuthenticationFailureHa
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         // 1. 记录登录失败日志
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//设置子线程共享
-        LoginLog log = new LoginLog();
-        log.setStatus(2);// 登录失败
-        log.setMsg(exception.getMessage());// 失败信息
-        loginLogService.save(log,request);
+        RequestDTO requestDTO = loginLogService.getRequestDTO(request);
+        loginLogService.save(requestDTO, false, "登录失败：" + exception.getMessage());
         // 2. 响应
         response.setContentType("application/json;charset=utf-8"); // 返回JSON
         response.setStatus(HttpStatus.UNAUTHORIZED.value());  // 状态码 400
